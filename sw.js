@@ -4,12 +4,6 @@ const CDN_ASSETS = [
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js'
 ];
 
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/service-worker.js")
-    .then(() => console.log("SW attivo"))
-    .catch(err => console.log("Errore SW:", err));
-}
-
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE).then(cache => cache.addAll(CDN_ASSETS).catch(() => {}))
