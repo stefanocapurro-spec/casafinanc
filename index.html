@@ -473,44 +473,65 @@ input:disabled{opacity:.5;background:transparent;border-color:transparent}
 
   <!-- SYNC CIFRATO -->
   <div class="card cp stsec">
-    <p class="sttl">🔐 Sync Cifrato (multi-dispositivo)</p>
+    <p class="sttl">🔐 Sync Cloud — AES-256 + Supabase</p>
     <p style="font-size:11px;color:var(--tx4);margin-bottom:10px;line-height:1.6">
-      Salva e carica un file <strong>.casafinance</strong> cifrato con AES-256.
-      Conservalo su iCloud Drive, Google Drive o OneDrive per accedervi da qualsiasi dispositivo.
-      Senza la tua password il file è illeggibile.
+      I dati vengono cifrati sul tuo dispositivo con AES-256 <strong>prima</strong> di
+      essere inviati al cloud. Supabase riceve solo dati illeggibili.
     </p>
 
-    <!-- Stato password -->
+    <!-- Stato sync -->
     <div id="enc-status" style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:var(--rads);margin-bottom:10px;background:var(--su2)">
       <span id="enc-status-icon" style="font-size:18px">🔓</span>
-      <div>
+      <div style="flex:1">
         <p id="enc-status-txt" style="font-size:12px;font-weight:600;color:var(--tx2)">Password non impostata</p>
-        <p id="enc-status-sub" style="font-size:10px;color:var(--tx4)">Imposta una password per abilitare il sync cifrato</p>
+        <p id="enc-status-sub" style="font-size:10px;color:var(--tx4)">Imposta password e chiave sync per abilitare il cloud</p>
       </div>
+      <div id="sync-live-status" style="font-size:10px;color:var(--tx4);text-align:right;min-width:60px"></div>
     </div>
 
-    <!-- Campo password (collassabile) -->
-    <div id="enc-pwd-form" style="margin-bottom:10px">
-      <div style="display:flex;gap:7px;margin-bottom:7px">
-        <input type="password" id="enc-pwd" placeholder="Password cifratura…" style="flex:1"/>
-        <button class="bp" style="width:auto;padding:9px 14px;font-size:13px" onclick="setEncPassword()">Imposta</button>
-      </div>
-      <div style="display:flex;gap:7px">
-        <input type="password" id="enc-pwd2" placeholder="Conferma password…" style="flex:1"/>
-        <button class="bg2" style="padding:9px 12px;font-size:13px" onclick="clearEncPassword()">✕ Rimuovi</button>
-      </div>
-      <p style="font-size:10px;color:var(--tx5);margin-top:5px">Usa almeno 8 caratteri. La password NON viene salvata — conservala in un posto sicuro.</p>
+    <!-- Password cifratura -->
+    <p style="font-size:11px;color:var(--tx4);margin-bottom:6px;font-weight:600">Password cifratura (privata)</p>
+    <div style="display:flex;gap:7px;margin-bottom:7px">
+      <input type="password" id="enc-pwd" placeholder="Password cifratura…" style="flex:1"/>
+      <button class="bp" style="width:auto;padding:9px 14px;font-size:13px" onclick="setEncPassword()">Imposta</button>
     </div>
+    <div style="display:flex;gap:7px;margin-bottom:4px">
+      <input type="password" id="enc-pwd2" placeholder="Conferma password…" style="flex:1"/>
+      <button class="bg2" style="padding:9px 12px;font-size:13px" onclick="clearEncPassword()">✕</button>
+    </div>
+    <p style="font-size:10px;color:var(--tx5);margin-bottom:12px">Min. 8 caratteri. Non viene mai salvata né inviata.</p>
 
-    <!-- Pulsanti sync -->
-    <button class="bdata" style="color:var(--ac);border-color:rgba(245,158,11,.25)" onclick="expEncrypted()">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      Esporta file cifrato (.casafinance)
+    <!-- Chiave sync condivisa -->
+    <p style="font-size:11px;color:var(--tx4);margin-bottom:6px;font-weight:600">Chiave sync (uguale su tutti i dispositivi)</p>
+    <div style="display:flex;gap:7px;margin-bottom:4px">
+      <input type="text" id="sync-key" placeholder="es. famiglia2026" style="flex:1;font-family:monospace"/>
+      <button class="bp" style="width:auto;padding:9px 14px;font-size:13px" onclick="saveSyncKey()">Salva</button>
+    </div>
+    <p style="font-size:10px;color:var(--tx5);margin-bottom:12px">Scegli una parola segreta uguale su tutti i tuoi dispositivi. Non è la password di cifratura.</p>
+
+    <!-- Pulsanti cloud -->
+    <button class="bdata" style="color:var(--ac);border-color:rgba(245,158,11,.3)" onclick="pushToCloud()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+      Invia al cloud (push)
     </button>
-    <button class="bdata" style="color:var(--bl);border-color:rgba(59,130,246,.2);margin-bottom:0" onclick="document.getElementById('fi-enc').click()">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><line x1="12" y1="15" x2="12" y2="18"/></svg>
-      Importa file cifrato (.casafinance)
+    <button class="bdata" style="color:var(--bl);border-color:rgba(59,130,246,.25)" onclick="pullFromCloud()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+      Ricevi dal cloud (pull)
     </button>
+
+    <!-- Separatore file locale -->
+    <div style="border-top:1px solid var(--bo);margin:10px 0 8px"></div>
+    <p style="font-size:10px;color:var(--tx5);margin-bottom:7px">Backup file locale (alternativa al cloud):</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+      <button class="bg2" style="justify-content:center;font-size:12px" onclick="expEncrypted()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Esporta .casafinance
+      </button>
+      <button class="bg2" style="justify-content:center;font-size:12px" onclick="document.getElementById('fi-enc').click()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><line x1="12" y1="15" x2="12" y2="18"/></svg>
+        Importa .casafinance
+      </button>
+    </div>
     <input type="file" id="fi-enc" accept=".casafinance" style="display:none" onchange="impEncrypted(this)"/>
   </div>
 
@@ -704,13 +725,19 @@ let ST={
 ══════════════════════════════════════════ */
 function save(){
   try{
-    // Cattura le preferenze di stile correnti e salvale dentro ST
     ST.stylePrefs = gP();
     localStorage.setItem('cf5',JSON.stringify(ST));
     const ts=new Date();
     const s=document.getElementById('hdr-save');
     if(s) s.textContent='💾 '+ts.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' del '+ts.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'});
   }catch(e){}
+  // Auto-push al cloud con debounce 3s (evita push per ogni singola digitazione)
+  scheduleCloudPush();
+}
+let _pushTimer=null;
+function scheduleCloudPush(){
+  clearTimeout(_pushTimer);
+  _pushTimer=setTimeout(()=>{ pushToCloud(true); },3000);
 }
 function load(){
   try{
@@ -1400,6 +1427,9 @@ function rSet(){
   syncUI();
   buildPaletteGrid();
   updEncStatus();
+  // Popola chiave sync
+  const sk=document.getElementById('sync-key');
+  if(sk){ const v=getSyncKey(); if(v) sk.value=v; }
   rBalList();
   // CC settings
   // Budget mensile
@@ -2014,16 +2044,29 @@ function updEncStatus(){
   const txt  = document.getElementById('enc-status-txt');
   const sub  = document.getElementById('enc-status-sub');
   if(!icon) return;
-  if(hasEncPwd()){
+  const hasPwd = hasEncPwd();
+  const hasSK  = !!getSyncKey();
+  const ready  = hasPwd && hasSK;
+  if(ready){
     icon.textContent = '🔐';
-    txt.textContent  = 'Password impostata — sessione protetta';
+    txt.textContent  = 'Sync cloud attivo — cifrato AES-256';
     txt.style.color  = 'var(--gr)';
-    sub.textContent  = 'Puoi esportare e importare file cifrati.';
+    sub.textContent  = 'Auto-push ad ogni salvataggio · Pull automatico ogni 5 min.';
+  } else if(hasPwd && !hasSK){
+    icon.textContent = '🔑';
+    txt.textContent  = 'Password OK — manca la chiave sync';
+    txt.style.color  = 'var(--or)';
+    sub.textContent  = 'Inserisci la stessa chiave sync su tutti i dispositivi.';
+  } else if(!hasPwd && hasSK){
+    icon.textContent = '🔓';
+    txt.textContent  = 'Chiave sync OK — manca la password';
+    txt.style.color  = 'var(--or)';
+    sub.textContent  = 'Imposta la password di cifratura per abilitare il sync.';
   } else {
     icon.textContent = '🔓';
-    txt.textContent  = 'Password non impostata';
+    txt.textContent  = 'Sync cloud non configurato';
     txt.style.color  = 'var(--tx2)';
-    sub.textContent  = 'Imposta una password per abilitare il sync cifrato.';
+    sub.textContent  = 'Imposta password e chiave sync per abilitare il cloud.';
   }
 }
 
@@ -2111,6 +2154,146 @@ async function _doDecryptImport(password){
     return false;
   }
 }
+
+/* ══════════════════════════════════════════ */
+/* ══════════════════════════════════════════
+   SUPABASE SYNC ENGINE
+   I dati vengono cifrati AES-256 PRIMA di
+   lasciare il dispositivo. Supabase vede
+   solo testo cifrato illeggibile.
+══════════════════════════════════════════ */
+const SUPA_URL = 'https://cwfcxzvlvhwulhmgpbgu.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN3ZmN4enZsdmh3dWxobWdwYmd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NTcyMDksImV4cCI6MjA5MTMzMzIwOX0.BCQnhfU_230N-DZsdqEzLDGGXOLTQTVX1KlHJzARHXk';
+const SYNC_KEY_LS = 'cf_sync_key'; // chiave localStorage per la sync-key
+
+function getSyncKey(){ return localStorage.getItem(SYNC_KEY_LS)||''; }
+function saveSyncKey(){
+  const v = document.getElementById('sync-key')?.value.trim();
+  if(!v){ notify('Inserisci una chiave sync','err'); return; }
+  localStorage.setItem(SYNC_KEY_LS, v);
+  updEncStatus();
+  notify('Chiave sync salvata ✓ — uguale su tutti i tuoi dispositivi');
+}
+
+/** Aggiorna l'indicatore di stato sync nell'header */
+function setSyncStatus(icon, msg, color){
+  const el = document.getElementById('sync-live-status');
+  if(el) el.innerHTML = `<span style="color:${color}">${icon} ${msg}</span>`;
+}
+
+/* ──────────────────────────────────────────
+   PUSH — invia dati al cloud
+   silent=true: nessuna notifica (autosave)
+────────────────────────────────────────── */
+async function pushToCloud(silent=false){
+  const syncKey = getSyncKey();
+  if(!syncKey){ if(!silent) notify('Imposta prima una chiave sync','err'); return; }
+  if(!hasEncPwd()){ if(!silent) notify('Imposta prima la password di cifratura','err'); return; }
+
+  setSyncStatus('⏳','invio...','var(--tx4)');
+  try{
+    // 1. Cifra i dati
+    ST.stylePrefs = gP();
+    const json   = JSON.stringify({...ST, _push: new Date().toISOString()});
+    const buf    = await encryptData(json, _encPwd);
+    // 2. Converti in base64 per il trasporto
+    const b64    = btoa(String.fromCharCode(...new Uint8Array(buf)));
+    // 3. Upsert su Supabase (inserisce o aggiorna la riga con quel sync_key)
+    const res = await fetch(`${SUPA_URL}/rest/v1/sync_data`, {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'apikey':         SUPA_KEY,
+        'Authorization': `Bearer ${SUPA_KEY}`,
+        'Prefer':        'resolution=merge-duplicates,return=minimal',
+      },
+      body: JSON.stringify({ device_id: syncKey, payload: b64, updated_at: new Date().toISOString() })
+    });
+    if(!res.ok){ throw new Error('HTTP '+res.status); }
+    const ts = new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+    setSyncStatus('☁️', ts, 'var(--gr)');
+    if(!silent) notify('☁️ Dati inviati al cloud ✓ — '+ts);
+  }catch(e){
+    setSyncStatus('⚠','errore','var(--re)');
+    if(!silent) notify('Errore push: '+e.message,'err');
+    console.error('Push error:',e);
+  }
+}
+
+/* ──────────────────────────────────────────
+   PULL — ricevi dati dal cloud
+────────────────────────────────────────── */
+async function pullFromCloud(){
+  const syncKey = getSyncKey();
+  if(!syncKey){ notify('Imposta prima una chiave sync','err'); return; }
+  if(!hasEncPwd()){ notify('Imposta prima la password di cifratura','err'); return; }
+
+  setSyncStatus('⏳','ricezione...','var(--tx4)');
+  try{
+    // 1. Leggi da Supabase
+    const res = await fetch(
+      `${SUPA_URL}/rest/v1/sync_data?device_id=eq.${encodeURIComponent(syncKey)}&order=updated_at.desc&limit=1`,
+      { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
+    );
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const rows = await res.json();
+    if(!rows||!rows.length){ notify('Nessun dato trovato sul cloud per questa chiave sync','warn'); setSyncStatus('','',''); return; }
+
+    // 2. Decifra
+    const b64   = rows[0].payload;
+    const buf   = Uint8Array.from(atob(b64), ch=>ch.charCodeAt(0)).buffer;
+    const json  = await decryptData(buf, _encPwd);
+    if(!json){ notify('Password errata — impossibile decifrare i dati cloud','err'); setSyncStatus('⚠','pwd errata','var(--re)'); return; }
+
+    // 3. Applica i dati
+    const data = JSON.parse(json);
+    const remoteTime = new Date(rows[0].updated_at);
+    // Confronta con i dati locali — prende il più recente
+    const localTime  = ST._push ? new Date(ST._push) : new Date(0);
+    if(remoteTime <= localTime){
+      notify('I dati locali sono già aggiornati ('+remoteTime.toLocaleTimeString('it-IT')+')','warn');
+      setSyncStatus('✓','aggiornato','var(--gr)');
+      return;
+    }
+    ST = Object.assign({}, ST, data);
+    if(!ST.monthlyBudget) ST.monthlyBudget=2100;
+    if(!ST.ccSettings) ST.ccSettings={cycleStartDay:2,paymentDays:45,paymentAccount:'contoCondiviso',plafond:0};
+    if(!ST.ccSettings.cycleOverrides) ST.ccSettings.cycleOverrides={};
+    if(!ST.incomeSources||!ST.incomeSources.length) ST.incomeSources=[...DEFAULT_INC_SOURCES];
+    save();
+    if(ST.stylePrefs){
+      try{ localStorage.setItem(PKEY, JSON.stringify(ST.stylePrefs)); }catch(e){}
+      loadPrefs();
+    }
+    const ts = remoteTime.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+    setSyncStatus('☁️',ts,'var(--gr)');
+    notify('☁️ Dati ricevuti dal cloud ✓ — '+ST.transactions.length+' movimenti ('+ts+')');
+    rDash(); if(curV!=='dashboard') go(curV);
+  }catch(e){
+    setSyncStatus('⚠','errore','var(--re)');
+    notify('Errore pull: '+e.message,'err');
+    console.error('Pull error:',e);
+  }
+}
+
+/* ──────────────────────────────────────────
+   AUTO-PULL: all'apertura dell'app e al
+   ritorno in foreground, scarica eventuali
+   aggiornamenti dal cloud
+────────────────────────────────────────── */
+async function autoPullOnFocus(){
+  if(getSyncKey() && hasEncPwd()){
+    await pullFromCloud();
+  }
+}
+// Pull silenzioso al ritorno in primo piano
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState==='visible') autoPullOnFocus();
+});
+// Pull automatico ogni 5 minuti se la pagina è attiva
+setInterval(()=>{
+  if(document.visibilityState==='visible') autoPullOnFocus();
+}, 5*60*1000);
 
 /* ══════════════════════════════════════════ */
 const PKEY='cf_style5';
