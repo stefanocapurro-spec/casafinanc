@@ -2599,7 +2599,7 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>
       }
     ]
   };
-  // Crea blob URL per il manifest e aggiorna il link
+  // Crea blob URL per il manifest dinamico e aggiorna il link
   try{
     const blob = new Blob([JSON.stringify(manifest)], {type:'application/manifest+json'});
     const url  = URL.createObjectURL(blob);
@@ -2607,51 +2607,16 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>
     if(link) link.href = url;
   }catch(e){}
 
-  // Registra Service Worker per funzionamento offline
+  // Registra Service Worker esterno (obbligatorio per installazione PWA su Chrome)
   if('serviceWorker' in navigator){
-    // SW inline come blob
-    const swCode = `
-const CACHE = 'casafinance-v14';
-const CDN = [
-  'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
-  'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js'
-];
-
-self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE).then(cache => cache.addAll(CDN).catch(()=>{}))
-  );
-  self.skipWaiting();
-});
-
-self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))
-    )
-  );
-  self.clients.claim();
-});
-
-self.addEventListener('fetch', e => {
-  // Cache-first per CDN, network-first per tutto il resto
-  if(e.request.url.includes('cdn.jsdelivr.net') || e.request.url.includes('fonts.googleapis.com')){
-    e.respondWith(
-      caches.match(e.request).then(r => r || fetch(e.request).then(res=>{
-        const clone = res.clone();
-        caches.open(CACHE).then(c=>c.put(e.request, clone));
-        return res;
-      }))
-    );
-  }
-});
-`;
-    try{
-      const swBlob = new Blob([swCode], {type:'application/javascript'});
-      const swUrl  = URL.createObjectURL(swBlob);
-      navigator.serviceWorker.register(swUrl, {scope:'./'})
-        .catch(()=>{}); // silenzioso se non supportato (es. file://)
-    }catch(e){}
+    navigator.serviceWorker.register('./sw.js', {scope:'./'})
+      .then(reg => {
+        console.log('SW registrato:', reg.scope);
+      })
+      .catch(err => {
+        // Fallback silenzioso (es. apertura da file://)
+        console.log('SW non registrato (probabile file://):', err.message);
+      });
   }
 })();
 </script>
