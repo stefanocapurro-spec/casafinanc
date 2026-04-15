@@ -1021,16 +1021,25 @@ function rMov(){
     fs.style.display='block';
     document.getElementById('fut-list').innerHTML=futTx
       .sort((a,b)=>a.date.localeCompare(b.date))
-      .map(t=>`<div class="ar" style="color:#93c5fd;padding:5px 0;border:none;align-items:center">
-        <span style="flex:1;min-width:0">
-          <strong>${new Date(t.date+'T12:00').toLocaleDateString('it-IT',{day:'2-digit',month:'short'})}</strong>
-          — ${esc(t.description)}<span class="ftag">FUTURO</span>
-        </span>
-        <span style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-          <strong style="color:var(--re)">${fmt(t.amount)}</strong>
-          <button class="txdel" title="Modifica" onclick="editTx('${t.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-          <button class="txdel" title="Elimina" onclick="delTx('${t.id}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
-        </span></div>`).join('');
+      .map(t=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;margin-bottom:6px;background:var(--su);border-radius:var(--rads);border:1px solid var(--bl)">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;color:var(--tx2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+            ${esc(t.description)}<span class="ftag">FUTURO</span>
+          </div>
+          <div style="font-size:11px;color:var(--tx4);margin-top:2px">
+            📅 ${new Date(t.date+'T12:00').toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'})}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+          <strong style="font-size:13px;color:var(--re)">${fmt(t.amount)}</strong>
+          <button style="background:var(--su2);border:1px solid var(--bo2);border-radius:7px;padding:5px 8px;cursor:pointer;display:flex;align-items:center" title="Modifica" onclick="editTx('${t.id}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--tx2)" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);border-radius:7px;padding:5px 8px;cursor:pointer;display:flex;align-items:center" title="Elimina" onclick="delTx('${t.id}')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--re)" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          </button>
+        </div>
+      </div>`).join('');
   } else { fs.style.display='none'; }
 
   // Movimenti del mese selezionato
@@ -2312,52 +2321,60 @@ function sP(k,v){
 ══════════════════════════════════════════ */
 const PALETTES = [
   {
-    // Carbone & Ambra — default, caldo e professionale
+    // Carbone & Ambra — caldo, professionale
+    // Chiaro: sabbia calda con card avorio, non bianco puro
     id:'carbone', name:'Carbone', emoji:'🟤',
     dark: { bg:'#17120e', surface:'#251c14', accent:'#c8924a', text:'#f0e8de' },
-    light:{ bg:'#f5f0eb', surface:'#ffffff', accent:'#96632a', text:'#2a1f14' }
+    light:{ bg:'#ede4d8', surface:'#f8f2ea', accent:'#8a5520', text:'#2a1f14' }
   },
   {
-    // Inchiostro & Salvia — blu scuro con verde tenero
+    // Inchiostro & Salvia
+    // Chiaro: carta bluastra con card bianco-azzurro
     id:'inchiostro', name:'Inchiostro', emoji:'🔵',
     dark: { bg:'#0f1621', surface:'#1a2335', accent:'#7aab8e', text:'#dde8f0' },
-    light:{ bg:'#f0f4f8', surface:'#ffffff', accent:'#3d7a5e', text:'#0f1e2e' }
+    light:{ bg:'#dde6ef', surface:'#edf3f8', accent:'#2e6652', text:'#0d1c2a' }
   },
   {
-    // Nebbia — grigio perla, accento blu polveroso
+    // Nebbia — grigio perla, toni freddi
+    // Chiaro: grigio-azzurro, card grigio perla
     id:'nebbia', name:'Nebbia', emoji:'🌫',
     dark: { bg:'#141618', surface:'#1e2124', accent:'#7b9ab5', text:'#dce4ec' },
-    light:{ bg:'#f2f4f6', surface:'#ffffff', accent:'#4a7a9b', text:'#1a2430' }
+    light:{ bg:'#dde3ea', surface:'#eaeff4', accent:'#3d6480', text:'#18252f' }
   },
   {
-    // Pino — verde bosco profondo, accento oro muschio
+    // Pino — verde bosco
+    // Chiaro: verde-salvia, card verde pallidissimo
     id:'pino', name:'Pino', emoji:'🌲',
     dark: { bg:'#0d1712', surface:'#162318', accent:'#a3b87a', text:'#e4eed8' },
-    light:{ bg:'#f0f5ec', surface:'#ffffff', accent:'#527a3a', text:'#162318' }
+    light:{ bg:'#d8e6d2', surface:'#e8f0e4', accent:'#3d6628', text:'#142010' }
   },
   {
-    // Pietra & Terracotta — sabbia neutra, accento cotto
+    // Pietra & Terracotta
+    // Chiaro: rosa-polvere, card salmone chiarissimo
     id:'pietra', name:'Pietra', emoji:'🏺',
     dark: { bg:'#1c1410', surface:'#281e18', accent:'#c07a5a', text:'#f0e6de' },
-    light:{ bg:'#f5f0ec', surface:'#ffffff', accent:'#9e4e30', text:'#281e18' }
+    light:{ bg:'#ecddd5', surface:'#f5ece6', accent:'#8a3c1e', text:'#281810' }
   },
   {
-    // Lavanda — viola desaturato, accento cielo
+    // Lavanda — viola desaturato
+    // Chiaro: lavanda tenue, card lilla chiarissimo
     id:'lavanda', name:'Lavanda', emoji:'💜',
     dark: { bg:'#14111e', surface:'#1e1930', accent:'#9b8fc0', text:'#e8e4f4' },
-    light:{ bg:'#f4f2fa', surface:'#ffffff', accent:'#5e4d8a', text:'#1e1930' }
+    light:{ bg:'#dfd9ef', surface:'#ece8f6', accent:'#4e3d7a', text:'#1a1428' }
   },
   {
-    // Carta — bianco caldo, accento inchiostro scuro
+    // Carta — neutro caldo
+    // Chiaro: pergamena, card crema — il più classico
     id:'carta', name:'Carta', emoji:'📄',
     dark: { bg:'#151412', surface:'#1e1c1a', accent:'#a89880', text:'#ede8e2' },
-    light:{ bg:'#fdf9f5', surface:'#ffffff', accent:'#5c4a38', text:'#251e18' }
+    light:{ bg:'#e8e0d4', surface:'#f2ece4', accent:'#4a3828', text:'#201810' }
   },
   {
-    // Oceano Profondo — blu notte, accento acquamarina tenue
+    // Mare — blu notte, acquamarina
+    // Chiaro: azzurro-grigio, card cielo pallido
     id:'mare', name:'Mare', emoji:'🌊',
     dark: { bg:'#0a1520', surface:'#122030', accent:'#5b9fb8', text:'#daeaf4' },
-    light:{ bg:'#edf5fa', surface:'#ffffff', accent:'#2a6e8a', text:'#0a1e2e' }
+    light:{ bg:'#d4e4ef', surface:'#e4f0f8', accent:'#1e5c78', text:'#081828' }
   },
 ];
 
@@ -2422,10 +2439,31 @@ function shiftHex(hex,amount){
 function applyColor(key,hex){
   sP('c_'+key,hex);
   const R=document.documentElement;
-  if(key==='accent'){R.style.setProperty('--ac',hex);R.style.setProperty('--ac2',hex+'2e');}
-  if(key==='bg'){R.style.setProperty('--bg',hex);R.style.setProperty('--su',shiftHex(hex,12));R.style.setProperty('--su2',shiftHex(hex,24));R.style.setProperty('--bo',shiftHex(hex,18));R.style.setProperty('--bo2',shiftHex(hex,30));}
-  if(key==='surface'){R.style.setProperty('--su',hex);R.style.setProperty('--su2',shiftHex(hex,10));R.style.setProperty('--bo',shiftHex(hex,5));}
-  if(key==='text'){R.style.setProperty('--tx',hex);R.style.setProperty('--tx2',hex+'dd');R.style.setProperty('--tx3',hex+'aa');R.style.setProperty('--tx4',hex+'77');R.style.setProperty('--tx5',hex+'55');}
+  if(key==='accent'){
+    R.style.setProperty('--ac',hex);
+    R.style.setProperty('--ac2',hex+'2e');
+  }
+  if(key==='bg'){
+    R.style.setProperty('--bg',hex);
+    // Surface è leggermente più chiara/scura dello sfondo
+    R.style.setProperty('--su', shiftHex(hex,14));
+    R.style.setProperty('--su2',shiftHex(hex,28));
+    R.style.setProperty('--bo', shiftHex(hex,20));
+    R.style.setProperty('--bo2',shiftHex(hex,38));
+  }
+  if(key==='surface'){
+    R.style.setProperty('--su', hex);
+    R.style.setProperty('--su2',shiftHex(hex,12));
+    R.style.setProperty('--bo', shiftHex(hex,22));
+    R.style.setProperty('--bo2',shiftHex(hex,35));
+  }
+  if(key==='text'){
+    R.style.setProperty('--tx', hex);
+    R.style.setProperty('--tx2',hex+'ee');
+    R.style.setProperty('--tx3',hex+'aa');
+    R.style.setProperty('--tx4',hex+'66');
+    R.style.setProperty('--tx5',hex+'44');
+  }
   syncUI();
 }
 
