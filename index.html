@@ -358,22 +358,80 @@ input:disabled{opacity:.5;background:transparent;border-color:transparent}
   <!-- ASPETTO -->
   <div class="card cp stsec">
     <p class="sttl">Aspetto &amp; Personalizzazione</p>
+
+    <!-- MODALITÀ SCHERMO -->
     <p style="font-size:11px;color:var(--tx4);margin-bottom:7px;font-weight:600">Modalità schermo</p>
-    <div style="display:flex;gap:6px;margin-bottom:14px">
+    <div style="display:flex;gap:6px;margin-bottom:18px">
       <button class="thb" id="tb-auto"  onclick="setTh('auto')">🖥 Auto</button>
       <button class="thb" id="tb-light" onclick="setTh('light')">☀️ Chiaro</button>
       <button class="thb" id="tb-dark"  onclick="setTh('dark')">🌙 Scuro</button>
     </div>
-    <!-- PALETTE PREDEFINITE -->
-    <p style="font-size:11px;color:var(--tx4);margin-bottom:9px;font-weight:600">Palette predefinite</p>
-    <div id="palette-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px"></div>
-    <p style="font-size:11px;color:var(--tx4);margin-bottom:7px;font-weight:600">Personalizzazione manuale</p>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px">
-      <div><label class="fl">Colore principale</label><div style="display:flex;align-items:center;gap:7px"><input type="color" id="c-ac" style="width:42px;flex-shrink:0" onchange="applyColor('accent',this.value)"/><span id="c-ac-h" style="font-size:11px;color:var(--tx4)"></span></div></div>
-      <div><label class="fl">Sfondo</label><div style="display:flex;align-items:center;gap:7px"><input type="color" id="c-bg" style="width:42px;flex-shrink:0" onchange="applyColor('bg',this.value)"/><span id="c-bg-h" style="font-size:11px;color:var(--tx4)"></span></div></div>
-      <div><label class="fl">Card / Superficie</label><div style="display:flex;align-items:center;gap:7px"><input type="color" id="c-su" style="width:42px;flex-shrink:0" onchange="applyColor('surface',this.value)"/><span id="c-su-h" style="font-size:11px;color:var(--tx4)"></span></div></div>
-      <div><label class="fl">Testo</label><div style="display:flex;align-items:center;gap:7px"><input type="color" id="c-tx" style="width:42px;flex-shrink:0" onchange="applyColor('text',this.value)"/><span id="c-tx-h" style="font-size:11px;color:var(--tx4)"></span></div></div>
+
+    <!-- SELEZIONE COLORI PER ELEMENTO -->
+    <p style="font-size:11px;color:var(--tx4);margin-bottom:4px;font-weight:600">Scegli i colori — ogni riga è indipendente</p>
+    <p style="font-size:10px;color:var(--tx5);margin-bottom:12px">Clicca un chip per applicarlo. Il testo è sempre garantito leggibile automaticamente.</p>
+
+    <!-- 1. COLORE PRINCIPALE (accent) -->
+    <div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:12px;font-weight:700;color:var(--tx2)">Colore principale</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span id="ac-cur-swatch" style="width:18px;height:18px;border-radius:50%;display:inline-block;border:2px solid var(--bo2)"></span>
+          <span id="ac-cur-name" style="font-size:11px;color:var(--tx4)"></span>
+        </div>
+      </div>
+      <div id="ac-chips" style="display:flex;flex-wrap:wrap;gap:7px"></div>
     </div>
+
+    <!-- 2. SFONDO -->
+    <div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:12px;font-weight:700;color:var(--tx2)">Sfondo</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span id="bg-cur-swatch" style="width:18px;height:18px;border-radius:50%;display:inline-block;border:2px solid var(--bo2)"></span>
+          <span id="bg-cur-name" style="font-size:11px;color:var(--tx4)"></span>
+        </div>
+      </div>
+      <div id="bg-chips" style="display:flex;flex-wrap:wrap;gap:7px"></div>
+    </div>
+
+    <!-- 3. SUPERFICIE -->
+    <div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:12px;font-weight:700;color:var(--tx2)">Superficie (card)</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span id="su-cur-swatch" style="width:18px;height:18px;border-radius:50%;display:inline-block;border:2px solid var(--bo2)"></span>
+          <span id="su-cur-name" style="font-size:11px;color:var(--tx4)"></span>
+        </div>
+      </div>
+      <div id="su-chips" style="display:flex;flex-wrap:wrap;gap:7px"></div>
+    </div>
+
+    <!-- 4. TESTO -->
+    <div style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:12px;font-weight:700;color:var(--tx2)">Testo</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span id="tx-cur-swatch" style="width:18px;height:18px;border-radius:50%;display:inline-block;border:2px solid var(--bo2)"></span>
+          <span id="tx-cur-name" style="font-size:11px;color:var(--tx4)"></span>
+        </div>
+      </div>
+      <p style="font-size:10px;color:var(--tx5);margin-bottom:6px">Il testo principale e quello descrittivo differiscono solo per opacità.</p>
+      <div id="tx-chips" style="display:flex;flex-wrap:wrap;gap:7px"></div>
+    </div>
+
+    <!-- ANTEPRIMA COMBINAZIONE -->
+    <div id="color-preview" style="border-radius:var(--rads);padding:12px 14px;margin-bottom:14px;border:1px solid var(--bo2)">
+      <p style="font-size:10px;color:var(--tx4);margin-bottom:6px;font-weight:600">ANTEPRIMA</p>
+      <div id="preview-card" style="border-radius:10px;padding:10px 12px">
+        <p id="preview-title" style="font-size:14px;font-weight:700;margin-bottom:3px">Testo principale</p>
+        <p id="preview-desc"  style="font-size:12px;margin-bottom:6px">Testo descrizione — leggermente più tenue</p>
+        <div id="preview-accent-btn" style="display:inline-block;border-radius:7px;padding:5px 14px;font-size:12px;font-weight:700">Pulsante accento</div>
+      </div>
+      <div id="contrast-info" style="margin-top:8px;font-size:10px;color:var(--tx4)"></div>
+    </div>
+
+    <!-- CARATTERE -->
     <p style="font-size:11px;color:var(--tx4);margin-bottom:7px;font-weight:600">Carattere</p>
     <div class="fg" style="margin-bottom:12px">
       <select id="sel-font" onchange="applyFont(this.value)">
@@ -387,8 +445,8 @@ input:disabled{opacity:.5;background:transparent;border-color:transparent}
         <option value="'Courier New',monospace">Courier New (mono)</option>
       </select>
     </div>
-    <p style="font-size:11px;color:var(--tx4);margin-bottom:9px;font-weight:600">Dimensione testo</p>
-    <div style="margin-bottom:14px">
+    <p style="font-size:11px;color:var(--tx4);margin-bottom:7px;font-weight:600">Dimensione testo</p>
+    <div style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
         <span style="font-size:11px;color:var(--tx4)">Compatta (13px)</span>
         <span id="fs-val" style="font-size:13px;font-weight:700;color:var(--ac);min-width:60px;text-align:center">14px</span>
@@ -406,7 +464,7 @@ input:disabled{opacity:.5;background:transparent;border-color:transparent}
       </div>
     </div>
     <p style="font-size:11px;color:var(--tx4);margin-bottom:7px;font-weight:600">Peso del testo</p>
-    <div style="display:flex;gap:6px;margin-bottom:14px">
+    <div style="display:flex;gap:6px;margin-bottom:16px">
       <button class="thb" id="fw-300" onclick="applyFontWeight('300')">Sottile</button>
       <button class="thb" id="fw-400" onclick="applyFontWeight('400')">Normale</button>
       <button class="thb" id="fw-500" onclick="applyFontWeight('500')">Medio</button>
@@ -1540,7 +1598,7 @@ function rRep(){
 ══════════════════════════════════════════ */
 function rSet(){
   syncUI();
-  buildPaletteGrid();
+  buildColorPicker();
   updEncStatus();
   rAcctList();
   // Popola chiave sync
@@ -2509,105 +2567,202 @@ function sP(k,v){
    Ogni palette: { id, name, emoji, dark, light }
    dark/light: { bg, surface, accent, text }
 ══════════════════════════════════════════ */
-const PALETTES = [
-  {
-    // Carbone & Ambra — caldo, professionale
-    // Chiaro: sabbia calda con card avorio, non bianco puro
-    id:'carbone', name:'Carbone', emoji:'🟤',
-    dark: { bg:'#17120e', surface:'#251c14', accent:'#c8924a', text:'#f0e8de' },
-    light:{ bg:'#ede4d8', surface:'#f8f2ea', accent:'#8a5520', text:'#2a1f14' }
-  },
-  {
-    // Inchiostro & Salvia
-    // Chiaro: carta bluastra con card bianco-azzurro
-    id:'inchiostro', name:'Inchiostro', emoji:'🔵',
-    dark: { bg:'#0f1621', surface:'#1a2335', accent:'#7aab8e', text:'#dde8f0' },
-    light:{ bg:'#dde6ef', surface:'#edf3f8', accent:'#2e6652', text:'#0d1c2a' }
-  },
-  {
-    // Nebbia — grigio perla, toni freddi
-    // Chiaro: grigio-azzurro, card grigio perla
-    id:'nebbia', name:'Nebbia', emoji:'🌫',
-    dark: { bg:'#141618', surface:'#1e2124', accent:'#7b9ab5', text:'#dce4ec' },
-    light:{ bg:'#dde3ea', surface:'#eaeff4', accent:'#3d6480', text:'#18252f' }
-  },
-  {
-    // Pino — verde bosco
-    // Chiaro: verde-salvia, card verde pallidissimo
-    id:'pino', name:'Pino', emoji:'🌲',
-    dark: { bg:'#0d1712', surface:'#162318', accent:'#a3b87a', text:'#e4eed8' },
-    light:{ bg:'#d8e6d2', surface:'#e8f0e4', accent:'#3d6628', text:'#142010' }
-  },
-  {
-    // Pietra & Terracotta
-    // Chiaro: rosa-polvere, card salmone chiarissimo
-    id:'pietra', name:'Pietra', emoji:'🏺',
-    dark: { bg:'#1c1410', surface:'#281e18', accent:'#c07a5a', text:'#f0e6de' },
-    light:{ bg:'#ecddd5', surface:'#f5ece6', accent:'#8a3c1e', text:'#281810' }
-  },
-  {
-    // Lavanda — viola desaturato
-    // Chiaro: lavanda tenue, card lilla chiarissimo
-    id:'lavanda', name:'Lavanda', emoji:'💜',
-    dark: { bg:'#14111e', surface:'#1e1930', accent:'#9b8fc0', text:'#e8e4f4' },
-    light:{ bg:'#dfd9ef', surface:'#ece8f6', accent:'#4e3d7a', text:'#1a1428' }
-  },
-  {
-    // Carta — neutro caldo
-    // Chiaro: pergamena, card crema — il più classico
-    id:'carta', name:'Carta', emoji:'📄',
-    dark: { bg:'#151412', surface:'#1e1c1a', accent:'#a89880', text:'#ede8e2' },
-    light:{ bg:'#e8e0d4', surface:'#f2ece4', accent:'#4a3828', text:'#201810' }
-  },
-  {
-    // Mare — blu notte, acquamarina
-    // Chiaro: azzurro-grigio, card cielo pallido
-    id:'mare', name:'Mare', emoji:'🌊',
-    dark: { bg:'#0a1520', surface:'#122030', accent:'#5b9fb8', text:'#daeaf4' },
-    light:{ bg:'#d4e4ef', surface:'#e4f0f8', accent:'#1e5c78', text:'#081828' }
-  },
-];
+/* ══════════════════════════════════════════
+   SISTEMA COLORI — proposte separate per
+   ogni elemento, contrasto garantito WCAG AA
+══════════════════════════════════════════ */
 
-function buildPaletteGrid(){
-  const grid = document.getElementById('palette-grid');
-  if(!grid) return;
-  const isDark = document.documentElement.getAttribute('data-theme')==='dark';
-  const activePid = gP().paletteId||null;
-  grid.innerHTML = PALETTES.map(p=>{
-    const colors = isDark ? p.dark : p.light;
-    const isActive = p.id === activePid;
-    return `<button onclick="applyPalette('${p.id}')" title="${p.name}" style="
-      border:2px solid ${isActive?colors.accent:'rgba(128,128,128,.2)'};
-      border-radius:12px;padding:0;cursor:pointer;overflow:hidden;
-      background:${colors.bg};outline:none;
-      transform:${isActive?'scale(1.05)':'scale(1)'};
-      box-shadow:${isActive?'0 0 0 2px '+colors.accent+'66':'none'};
-      transition:transform .15s,box-shadow .15s">
-      <div style="padding:10px 8px 7px">
-        <div style="display:flex;gap:4px;margin-bottom:7px">
-          <div style="flex:2;height:10px;border-radius:5px;background:${colors.accent}"></div>
-          <div style="flex:3;height:10px;border-radius:5px;background:${colors.surface};border:1px solid ${colors.accent}44"></div>
-        </div>
-        <div style="font-size:10px;color:${colors.text};font-weight:600;text-align:center;
-          white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name}</div>
-      </div>
-    </button>`;
-  }).join('');
+/** Calcola la luminanza relativa di un colore hex (WCAG 2.1) */
+function luminance(hex){
+  hex=hex.replace('#','');
+  if(hex.length===3) hex=hex.split('').map(x=>x+x).join('');
+  const r=parseInt(hex.slice(0,2),16)/255;
+  const g=parseInt(hex.slice(2,4),16)/255;
+  const b=parseInt(hex.slice(4,6),16)/255;
+  const lin=v=>v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);
+  return 0.2126*lin(r)+0.7152*lin(g)+0.0722*lin(b);
 }
 
-function applyPalette(id){
-  const p = PALETTES.find(x=>x.id===id);
-  if(!p) return;
+/** Rapporto di contrasto tra due colori (WCAG: >= 4.5 = AA, >= 7 = AAA) */
+function contrastRatio(hex1,hex2){
+  const l1=luminance(hex1), l2=luminance(hex2);
+  const lighter=Math.max(l1,l2), darker=Math.min(l1,l2);
+  return (lighter+0.05)/(darker+0.05);
+}
+
+/** Sceglie automaticamente il colore testo più leggibile su uno sfondo */
+function bestTextOn(bgHex){
+  const onWhite=contrastRatio(bgHex,'#ffffff');
+  const onBlack=contrastRatio(bgHex,'#0a0a0a');
+  return onBlack>=onWhite ? '#0a0a0a' : '#f5f5f5';
+}
+
+// ── Proposte per ciascun elemento ──────────────────────────────
+
+const COLOR_PROPOSALS = {
+  accent: [
+    {name:'Ambra',    hex:'#c8924a'},
+    {name:'Terracotta',hex:'#c0705a'},
+    {name:'Salvia',   hex:'#6a9e78'},
+    {name:'Aciaio',   hex:'#5b8fb8'},
+    {name:'Lavanda',  hex:'#8878b8'},
+    {name:'Teal',     hex:'#4a9e9e'},
+    {name:'Oro',      hex:'#b8962a'},
+    {name:'Corallo',  hex:'#c06868'},
+    {name:'Cipria',   hex:'#a87860'},
+    {name:'Menta',    hex:'#5aaa88'},
+  ],
+  bg: [
+    // Scuri
+    {name:'Notte',    hex:'#12100e', dark:true},
+    {name:'Ardesia',  hex:'#141618', dark:true},
+    {name:'NavyNotte',hex:'#0d1520', dark:true},
+    {name:'ForestaN.', hex:'#0d1510', dark:true},
+    {name:'ViolaNotte',hex:'#131018', dark:true},
+    // Chiari
+    {name:'Avorio',   hex:'#f5f0e8', dark:false},
+    {name:'Nebbia',   hex:'#eaecef', dark:false},
+    {name:'Salvia Ch.',hex:'#e8eeea', dark:false},
+    {name:'CieloTenue',hex:'#e8eef5', dark:false},
+    {name:'Pesca',    hex:'#f0ebe5', dark:false},
+  ],
+  surface: [
+    // Scuri (abbinare a bg scuri)
+    {name:'CarboneChiaro', hex:'#1e1c18', dark:true},
+    {name:'ArdesiaChiara', hex:'#22262a', dark:true},
+    {name:'NavyChiaro',    hex:'#162030', dark:true},
+    {name:'ForestaChiara', hex:'#162018', dark:true},
+    {name:'ViolaChiara',   hex:'#1e1828', dark:true},
+    // Chiari (abbinare a bg chiari)
+    {name:'Crema',         hex:'#fdf8f0', dark:false},
+    {name:'Bianco Freddo', hex:'#f8fafb', dark:false},
+    {name:'BiancoSalvia',  hex:'#f4f8f4', dark:false},
+    {name:'BiancoAzz.',    hex:'#f4f8fc', dark:false},
+    {name:'BiancoRosa',    hex:'#fdf6f4', dark:false},
+  ],
+  text: [
+    // Chiari (per sfondi scuri)
+    {name:'Bianco Puro',   hex:'#f8f8f8', dark:true},
+    {name:'Bianco Caldo',  hex:'#f2ece4', dark:true},
+    {name:'Bianco Freddo', hex:'#e8eef5', dark:true},
+    {name:'Argento',       hex:'#d8dce2', dark:true},
+    {name:'Crema',         hex:'#f0e8d8', dark:true},
+    // Scuri (per sfondi chiari)
+    {name:'Inchiostro',    hex:'#18181a', dark:false},
+    {name:'Carbone',       hex:'#28201a', dark:false},
+    {name:'Marina',        hex:'#182030', dark:false},
+    {name:'Foresta',       hex:'#182018', dark:false},
+    {name:'Prugna',        hex:'#221830', dark:false},
+  ],
+};
+
+// Stato corrente selezioni (per anteprima)
+const _curSel = { accent:null, bg:null, surface:null, text:null };
+
+function buildColorPicker(){
   const isDark = document.documentElement.getAttribute('data-theme')==='dark';
-  const colors = isDark ? p.dark : p.light;
-  // Applica tutti e 4 i colori chiave
-  applyColor('accent',  colors.accent);
-  applyColor('bg',      colors.bg);
-  applyColor('surface', colors.surface);
-  applyColor('text',    colors.text);
-  sP('paletteId', id);
-  buildPaletteGrid(); // aggiorna la selezione visiva
-  notify('Palette "'+p.name+'" applicata ✓');
+
+  ['accent','bg','surface','text'].forEach(key=>{
+    const container=document.getElementById(key==='accent'?'ac-chips':key==='bg'?'bg-chips':key==='surface'?'su-chips':'tx-chips');
+    if(!container) return;
+
+    // Filtra proposte pertinenti al tema (per bg/surface/text)
+    let proposals = COLOR_PROPOSALS[key];
+    if(key==='bg'||key==='surface'||key==='text'){
+      proposals = proposals.filter(p=>isDark ? p.dark : !p.dark);
+    }
+
+    container.innerHTML = proposals.map(p=>{
+      // Determina il colore del testo sulla chip
+      const chipText = bestTextOn(p.hex);
+      // Colore di sfondo per mostrare il chip del testo
+      const chipBg = key==='text' ? (isDark?'#1a1a1a':'#f0f0f0') : p.hex;
+      return `<button onclick="selectColor('${key}','${p.hex}','${p.name}')"
+        title="${p.name}: ${p.hex}"
+        style="width:56px;height:48px;border-radius:10px;border:2px solid transparent;
+          background:${chipBg};cursor:pointer;
+          display:flex;flex-direction:column;align-items:center;justify-content:center;
+          gap:2px;transition:all .15s;outline:none;padding:2px"
+        id="chip-${key}-${p.hex.replace('#','')}">
+        ${key==='text'
+          ? `<div style="width:28px;height:4px;border-radius:2px;background:${p.hex}"></div>
+             <div style="width:22px;height:3px;border-radius:2px;background:${p.hex};opacity:.5"></div>`
+          : ``}
+        <span style="font-size:9px;font-weight:600;color:${key==='text'?(isDark?'#aaa':'#555'):chipText};
+          line-height:1.2;text-align:center;word-break:break-word;max-width:52px">${p.name}</span>
+      </button>`;
+    }).join('');
+  });
+
+  updateColorPreview();
+}
+
+function selectColor(key, hex, name){
+  _curSel[key]={hex,name};
+
+  // Applica immediatamente
+  applyColor(key==='accent'?'accent':key==='bg'?'bg':key==='surface'?'surface':'text', hex);
+
+  // Evidenzia chip selezionata
+  const prefix = key==='accent'?'ac':key==='bg'?'bg':key==='surface'?'su':'tx';
+  document.querySelectorAll(`[id^="chip-${key}-"]`).forEach(el=>{
+    el.style.borderColor='transparent';
+    el.style.transform='scale(1)';
+    el.style.boxShadow='none';
+  });
+  const chip=document.getElementById(`chip-${key}-${hex.replace('#','')}`);
+  if(chip){
+    chip.style.borderColor='var(--ac)';
+    chip.style.transform='scale(1.1)';
+    chip.style.boxShadow='0 0 0 2px var(--ac2)';
+  }
+
+  // Aggiorna nome corrente
+  const swEl=document.getElementById(`${prefix}-cur-swatch`);
+  const nmEl=document.getElementById(`${prefix}-cur-name`);
+  if(swEl) swEl.style.background=hex;
+  if(nmEl) nmEl.textContent=name;
+
+  updateColorPreview();
+}
+
+function updateColorPreview(){
+  const cs=getComputedStyle(document.documentElement);
+  const bg = _curSel.surface?.hex || cs.getPropertyValue('--su').trim() || '#1e293b';
+  const tx = _curSel.text?.hex    || cs.getPropertyValue('--tx').trim() || '#f8fafc';
+  const ac = _curSel.accent?.hex  || cs.getPropertyValue('--ac').trim() || '#f59e0b';
+
+  const card=document.getElementById('preview-card');
+  const title=document.getElementById('preview-title');
+  const desc=document.getElementById('preview-desc');
+  const btn=document.getElementById('preview-accent-btn');
+  const info=document.getElementById('contrast-info');
+  if(!card) return;
+
+  card.style.background=bg;
+  if(title){ title.style.color=tx; }
+  if(desc){ desc.style.color=tx+'aa'; }
+  if(btn){
+    btn.style.background=ac;
+    btn.style.color=bestTextOn(ac);
+  }
+
+  // Calcola e mostra rapporti di contrasto
+  const cr = contrastRatio(tx, bg).toFixed(1);
+  const crAc = contrastRatio(ac, bg).toFixed(1);
+  const levelTx = cr>=7?'AAA ✓':cr>=4.5?'AA ✓':cr>=3?'AA Large ⚠':'⚠ Basso';
+  const levelAc = crAc>=4.5?'AA ✓':crAc>=3?'AA Large ⚠':'⚠ Basso';
+  if(info) info.innerHTML=
+    `Contrasto testo/card: <strong style="color:${cr>=4.5?'var(--gr)':'var(--re)'}">${cr}:1 ${levelTx}</strong>` +
+    `&nbsp;&nbsp;|&nbsp;&nbsp;Accento/card: <strong style="color:${crAc>=4.5?'var(--gr)':'var(--or)'}">${crAc}:1 ${levelAc}</strong>`;
+}
+
+// Legacy palette grid — non più usato ma mantenuto per compatibilità loadPrefs
+function buildPaletteGrid(){ buildColorPicker(); }
+
+function applyPalette(id){
+  // Mantenuto per compatibilità con loadPrefs esistente — non fa nulla di visibile
+  buildColorPicker();
 }
 
 function setTh(m){
@@ -2616,7 +2771,7 @@ function setTh(m){
   document.documentElement.setAttribute('data-theme',dk?'dark':'light');
   sP('theme',m);
   ['auto','light','dark'].forEach(x=>document.getElementById('tb-'+x)?.classList.toggle('active',thMode===x));
-  buildPaletteGrid(); // ricostruisce con i colori del tema giusto
+  buildColorPicker();
 }
 
 function shiftHex(hex,amount){
@@ -2635,11 +2790,17 @@ function applyColor(key,hex){
   }
   if(key==='bg'){
     R.style.setProperty('--bg',hex);
-    // Surface è leggermente più chiara/scura dello sfondo
     R.style.setProperty('--su', shiftHex(hex,14));
     R.style.setProperty('--su2',shiftHex(hex,28));
     R.style.setProperty('--bo', shiftHex(hex,20));
     R.style.setProperty('--bo2',shiftHex(hex,38));
+    // Forza testo sempre leggibile sullo sfondo scelto
+    const autoTx=bestTextOn(hex);
+    R.style.setProperty('--tx', autoTx);
+    R.style.setProperty('--tx2',autoTx+'ee');
+    R.style.setProperty('--tx3',autoTx+'99');
+    R.style.setProperty('--tx4',autoTx+'66');
+    R.style.setProperty('--tx5',autoTx+'44');
   }
   if(key==='surface'){
     R.style.setProperty('--su', hex);
@@ -2648,11 +2809,23 @@ function applyColor(key,hex){
     R.style.setProperty('--bo2',shiftHex(hex,35));
   }
   if(key==='text'){
-    R.style.setProperty('--tx', hex);
-    R.style.setProperty('--tx2',hex+'ee');
-    R.style.setProperty('--tx3',hex+'aa');
-    R.style.setProperty('--tx4',hex+'66');
-    R.style.setProperty('--tx5',hex+'44');
+    // Verifica che il contrasto sia sufficiente
+    const bgHex=getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()||'#121212';
+    const cr=contrastRatio(hex,bgHex);
+    let finalHex=hex;
+    // Se il contrasto è sotto 4.5:1, schiarisci/scurisci finché non lo raggiunge
+    if(cr<4.5){
+      const lum=luminance(hex);
+      for(let step=5;step<=120;step+=5){
+        const candidate=shiftHex(hex, lum>0.5?-step:step);
+        if(contrastRatio(candidate,bgHex)>=4.5){ finalHex=candidate; break; }
+      }
+    }
+    R.style.setProperty('--tx', finalHex);
+    R.style.setProperty('--tx2',finalHex+'ee');
+    R.style.setProperty('--tx3',finalHex+'99');
+    R.style.setProperty('--tx4',finalHex+'66');
+    R.style.setProperty('--tx5',finalHex+'44');
   }
   syncUI();
 }
@@ -2666,7 +2839,6 @@ function applyFontSize(val){
 function applyFontSizeSlider(px){
   const val=px+'px';
   applyFontSize(val);
-  // aggiorna etichetta e posizione slider
   const lbl=document.getElementById('fs-val');
   if(lbl) lbl.textContent=val;
   const sl=document.getElementById('fs-slider');
@@ -2676,15 +2848,9 @@ function applyFontWeight(val){sP('fw',val);document.documentElement.style.setPro
 
 function syncUI(){
   const cs=getComputedStyle(document.documentElement);
-  // colori
-  [['c-ac','--ac'],['c-bg','--bg'],['c-su','--su'],['c-tx','--tx']].forEach(([id,v])=>{
-    const el=document.getElementById(id);if(!el)return;
-    const val=cs.getPropertyValue(v).trim();
-    if(val.match(/^#[0-9a-f]{3,6}/i)){el.value=val.slice(0,7);const hx=document.getElementById(id+'-h');if(hx)hx.textContent=val.slice(0,7);}
-  });
   // font family
   const fs=document.getElementById('sel-font');if(fs){const v=cs.getPropertyValue('--ff').trim();if(v)fs.value=v;}
-  // font size — slider
+  // font size
   const fsv=cs.getPropertyValue('--fs').trim()||'14px';
   const fspx=parseInt(fsv)||14;
   const sl=document.getElementById('fs-slider'); if(sl) sl.value=fspx;
@@ -2695,6 +2861,8 @@ function syncUI(){
   document.getElementById('fw-'+fwv)?.classList.add('active');
   // theme
   ['auto','light','dark'].forEach(x=>document.getElementById('tb-'+x)?.classList.toggle('active',thMode===x));
+  // aggiorna anteprima
+  updateColorPreview();
 }
 
 function resetStyle(){
@@ -2703,23 +2871,19 @@ function resetStyle(){
   const vars=['--ac','--ac2','--bg','--su','--su2','--bo','--bo2','--tx','--tx2','--tx3','--tx4','--tx5','--ff','--fs','--fw','--fwb'];
   vars.forEach(v=>document.documentElement.style.removeProperty(v));
   thMode='auto'; setTh('auto'); syncUI();
-  buildPaletteGrid();
+  buildColorPicker();
+  Object.keys(_curSel).forEach(k=>_curSel[k]=null);
   notify('Aspetto ripristinato ai valori default ✓');
 }
 
 function loadPrefs(){
   const p=gP();
   const m=p.theme||'auto'; thMode=m; setTh(m);
-  if(p.paletteId){
-    // Applica la palette salvata (rispetta anche il tema chiaro/scuro attuale)
-    applyPalette(p.paletteId);
-  } else {
-    // Applica colori manuali salvati singolarmente
-    if(p.c_accent) applyColor('accent',p.c_accent);
-    if(p.c_bg)     applyColor('bg',p.c_bg);
-    if(p.c_surface)applyColor('surface',p.c_surface);
-    if(p.c_text)   applyColor('text',p.c_text);
-  }
+  // Applica colori salvati (la palette legacy viene ignorata, si usano i singoli valori)
+  if(p.c_accent) applyColor('accent',p.c_accent);
+  if(p.c_bg)     applyColor('bg',p.c_bg);
+  if(p.c_surface)applyColor('surface',p.c_surface);
+  if(p.c_text)   applyColor('text',p.c_text);
   if(p.font) applyFont(p.font);
   if(p.fs)   applyFontSize(p.fs);
   if(p.fw)   applyFontWeight(p.fw);
