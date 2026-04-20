@@ -348,6 +348,12 @@ input:disabled{opacity:.5;background:transparent;border-color:transparent}
     <p style="font-size:12px;color:var(--tx3);font-weight:500;margin-bottom:10px">⚡ Spese Straordinarie — anno <span id="rep-straord-year"></span></p>
     <div id="rep-straord"></div>
   </div>
+  <!-- Report annuale per categoria -->
+  <div class="card cp" style="margin-bottom:12px">
+    <p style="font-size:12px;color:var(--tx3);font-weight:500;margin-bottom:4px">📊 Budget Annuale per Categoria — <span id="rep-ann-year"></span></p>
+    <p style="font-size:10px;color:var(--tx5);margin-bottom:12px">Speso vs preventivo annuo (somma dei 12 budget mensili). 🟡 &gt;90% · 🔴 oltre il limite.</p>
+    <div id="rep-annual"></div>
+  </div>
   <div class="scroll-end"></div>
 </div>
 
@@ -1144,25 +1150,34 @@ function rMov(){
     fs.style.display='block';
     document.getElementById('fut-list').innerHTML=futTx
       .sort((a,b)=>a.date.localeCompare(b.date))
-      .map(t=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;margin-bottom:6px;background:var(--su);border-radius:var(--rads);border:1px solid var(--bl)">
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:600;color:var(--tx2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-            ${esc(t.description)}<span class="ftag">FUTURO</span>
+      .map(t=>{
+        const isInc=t.type==='income', isTrf=t.type==='transfer';
+        const amtColor=isInc?'var(--gr)':isTrf?'var(--ac)':'var(--re)';
+        const borderColor=isInc?'rgba(34,197,94,.35)':isTrf?'rgba(245,158,11,.35)':'rgba(239,68,68,.35)';
+        const bgColor=isInc?'rgba(34,197,94,.06)':isTrf?'rgba(245,158,11,.06)':'rgba(239,68,68,.06)';
+        const sign=isInc?'+':isTrf?'':'−';
+        const typeLabel=isInc?'↑ Entrata':isTrf?'⇄ Giroconto':'↓ Uscita';
+        const straordBadge=t.straord?'<span style="font-size:9px;background:rgba(249,115,22,.2);color:#f97316;border:1px solid rgba(249,115,22,.4);border-radius:20px;padding:1px 6px;font-weight:700;margin-left:4px">⚡STRAORD</span>':'';
+        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;margin-bottom:6px;background:${bgColor};border-radius:var(--rads);border:1px solid ${borderColor}">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600;color:var(--tx2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+              ${esc(t.description)}<span class="ftag">FUTURO</span>${straordBadge}
+            </div>
+            <div style="font-size:11px;color:${amtColor};opacity:.85;margin-top:2px">
+              ${typeLabel} · 📅 ${new Date(t.date+'T12:00').toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'})}
+            </div>
           </div>
-          <div style="font-size:11px;color:var(--tx4);margin-top:2px">
-            📅 ${new Date(t.date+'T12:00').toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'})}
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+            <strong style="font-size:13px;color:${amtColor}">${sign}${fmt(t.amount)}</strong>
+            <button style="background:var(--su2);border:1px solid var(--bo2);border-radius:7px;padding:5px 8px;cursor:pointer;display:flex;align-items:center" title="Modifica" onclick="editTx('${t.id}')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--tx2)" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);border-radius:7px;padding:5px 8px;cursor:pointer;display:flex;align-items:center" title="Elimina" onclick="delTx('${t.id}')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--re)" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            </button>
           </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-          <strong style="font-size:13px;color:var(--re)">${fmt(t.amount)}</strong>
-          <button style="background:var(--su2);border:1px solid var(--bo2);border-radius:7px;padding:5px 8px;cursor:pointer;display:flex;align-items:center" title="Modifica" onclick="editTx('${t.id}')">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--tx2)" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          </button>
-          <button style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);border-radius:7px;padding:5px 8px;cursor:pointer;display:flex;align-items:center" title="Elimina" onclick="delTx('${t.id}')">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--re)" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-          </button>
-        </div>
-      </div>`).join('');
+        </div>`;
+      }).join('');
   } else { fs.style.display='none'; }
 
   // Movimenti del mese selezionato
@@ -1591,7 +1606,75 @@ function rRep(){
       }).join('');
     }
   }
+  renderAnnualReport(sY);
 }
+
+/* ══════════════════════════════════════════
+   REPORT ANNUALE PER CATEGORIA
+   Budget atteso = limite × 12 mesi
+   Verde: ≤90% | Arancio: 90.1-99.9% | Rosso: ≥100%
+══════════════════════════════════════════ */
+function renderAnnualReport(year){
+  const annYearEl=document.getElementById('rep-ann-year');
+  if(annYearEl) annYearEl.textContent=year;
+  const repEl=document.getElementById('rep-annual');
+  if(!repEl) return;
+
+  // Speso per categoria nell'anno (escluse straordinarie)
+  const rows = ST.budgets.map(b=>{
+    const annualLimit = b.limit * 12;
+    const annualSpent = ST.transactions
+      .filter(t => t.type==='expense' && !t.straord && !isFut(t.date)
+               && t.date.startsWith(String(year)) && t.category===b.id)
+      .reduce((s,t)=>s+t.amount, 0);
+    const pct = annualLimit>0 ? annualSpent/annualLimit : 0;
+    return {b, annualLimit, annualSpent, pct};
+  }).filter(r=>r.annualLimit>0||r.annualSpent>0);
+
+  if(!rows.length){
+    repEl.innerHTML='<p style="font-size:13px;color:var(--tx4);text-align:center;padding:16px 0">Nessun dato di spesa per '+year+'</p>';
+    return;
+  }
+
+  const totLimit = rows.reduce((s,r)=>s+r.annualLimit, 0);
+  const totSpent = rows.reduce((s,r)=>s+r.annualSpent, 0);
+  const totPct   = totLimit>0 ? totSpent/totLimit : 0;
+  const totColor = totPct>1?'var(--re)':totPct>0.9?'var(--or)':'var(--gr)';
+
+  repEl.innerHTML =
+    `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--su2);border-radius:var(--rads);margin-bottom:10px;border-left:4px solid ${totColor}">
+      <span style="font-size:13px;font-weight:800;color:var(--tx2)">Totale ${year}</span>
+      <div style="text-align:right">
+        <div style="font-size:14px;font-weight:800;color:${totColor}">${fmt(totSpent)}</div>
+        <div style="font-size:10px;color:var(--tx4)">su ${fmt(totLimit)} preventivati (${(totPct*100).toFixed(1)}%)</div>
+      </div>
+    </div>` +
+    rows.sort((a,b)=>b.pct-a.pct).map(r=>{
+      const {b,annualLimit,annualSpent,pct}=r;
+      const barPct=Math.min(pct*100,100).toFixed(1);
+      const color=pct>1?'var(--re)':pct>0.9?'var(--or)':'var(--gr)';
+      const bg=pct>1?'background:rgba(239,68,68,.06)':pct>0.9?'background:rgba(249,115,22,.04)':'';
+      const remaining=annualLimit-annualSpent;
+      const statusTxt=pct>1?'⚠ Sforato di '+fmt(-remaining):pct>0.9?'⚠ Rimangono '+fmt(remaining):'✓ Rimangono '+fmt(remaining);
+      return `<div style="padding:10px 12px;margin-bottom:7px;border-radius:var(--rads);border:1px solid var(--bo);${bg}">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <span style="font-size:13px;font-weight:600;color:var(--tx2)">${b.emoji||'📦'} ${b.name}</span>
+          <div style="text-align:right">
+            <span style="font-size:13px;font-weight:700;color:${color}">${fmt(annualSpent)}</span>
+            <span style="font-size:11px;color:var(--tx4)"> / ${fmt(annualLimit)}</span>
+          </div>
+        </div>
+        <div style="height:5px;border-radius:3px;background:var(--su2);overflow:hidden;margin-bottom:4px">
+          <div style="height:100%;border-radius:3px;background:${color};width:${barPct}%;transition:width .4s"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px">
+          <span style="color:var(--tx5)">${(pct*100).toFixed(1)}% del preventivo annuo (${fmt(b.limit)}/mese × 12)</span>
+          <span style="color:${color};font-weight:600">${statusTxt}</span>
+        </div>
+      </div>`;
+    }).join('');
+}
+
 
 /* ══════════════════════════════════════════
    IMPOSTAZIONI
