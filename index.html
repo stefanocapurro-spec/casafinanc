@@ -182,7 +182,13 @@ input:disabled{opacity:.5;background:transparent;border-color:transparent}
 .empty{text-align:center;padding:36px 18px;color:var(--tx5)}
 
 /* SETTINGS */
-.stsec{margin-bottom:12px}
+.stsec{margin-bottom:8px}
+.acc-hdr{display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:12px 14px;margin:0;user-select:none;border-radius:var(--rads)}
+.acc-hdr:hover{background:var(--su2)}
+.acc-hdr .acc-arrow{font-size:12px;color:var(--tx4);transition:transform .25s;flex-shrink:0}
+.acc-hdr.open .acc-arrow{transform:rotate(180deg)}
+.acc-body{overflow:hidden;max-height:0;transition:max-height .35s ease,padding .25s ease;padding:0 14px}
+.acc-body.open{max-height:9999px;padding:0 14px 14px}
 .sttl{font-size:10px;color:var(--tx4);font-weight:700;text-transform:uppercase;letter-spacing:.9px;margin-bottom:12px}
 .stat-r{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--bo)}
 .stat-k{font-size:13px;color:var(--tx4)}.stat-v{font-size:13px;font-weight:600;color:var(--tx2)}
@@ -363,7 +369,8 @@ input:disabled{opacity:.5;background:transparent;border-color:transparent}
 
   <!-- ASPETTO -->
   <div class="card cp stsec">
-    <p class="sttl">Aspetto &amp; Personalizzazione</p>
+    <div class="acc-hdr" onclick="toggleAcc('aspetto')"><span style="font-size:13px;font-weight:700;color:var(--tx2)">🎨 Aspetto &amp; Personalizzazione</span><span class="acc-arrow">▼</span></div>
+    <div class="acc-body" id="acc-aspetto">
 
     <!-- MODALITÀ SCHERMO -->
     <p style="font-size:11px;color:var(--tx4);margin-bottom:7px;font-weight:600">Modalità schermo</p>
@@ -477,23 +484,26 @@ input:disabled{opacity:.5;background:transparent;border-color:transparent}
       <button class="thb" id="fw-600" onclick="applyFontWeight('600')">Grassetto</button>
     </div>
     <button class="bg2" style="width:100%;justify-content:center" onclick="resetStyle()">↺ Ripristina aspetto default</button>
+      </div>
   </div>
 
   <!-- CC SETTINGS -->
   <div class="card cp stsec">
-    <!-- BUDGET MENSILE COMPLESSIVO -->
-    <p class="sttl">💰 Budget Mensile Complessivo</p>
+    <div class="acc-hdr" onclick="toggleAcc('budget-mens')"><span style="font-size:13px;font-weight:700;color:var(--tx2)">💰 Budget Mensile Complessivo</span><span class="acc-arrow">▼</span></div>
+    <div class="acc-body" id="acc-budget-mens">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
       <input type="number" id="inp-monthly-budget" min="0" step="50" value="2100"
         style="flex:1;font-size:16px;font-weight:700;text-align:center"/>
       <button class="bp" style="width:auto;padding:10px 18px" onclick="saveMonthlyBudget()">Salva</button>
     </div>
     <p style="font-size:11px;color:var(--tx4);margin-bottom:0">Limite complessivo mensile per tutte le categorie di spesa.</p>
+      </div>
   </div>
 
   <!-- CC SETTINGS -->
   <div class="card cp stsec">
-    <p class="sttl">⚙️ Carta di Credito — Impostazioni</p>
+    <div class="acc-hdr" onclick="toggleAcc('cc-imp')"><span style="font-size:13px;font-weight:700;color:var(--tx2)">⚙️ Carta di Credito — Impostazioni</span><span class="acc-arrow">▼</span></div>
+    <div class="acc-body" id="acc-cc-imp">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px">
       <div><label class="fl">Giorno apertura ciclo</label><input type="number" id="cc-start" min="1" max="28" value="2" style="text-align:center"/></div>
       <div><label class="fl">Giorni al pagamento</label><input type="number" id="cc-days" min="1" max="90" value="45" style="text-align:center"/></div>
@@ -505,7 +515,8 @@ input:disabled{opacity:.5;background:transparent;border-color:transparent}
 
   <!-- CATEGORIE PERSONALIZZATE -->
   <div class="card cp stsec">
-    <p class="sttl">🗂 Categorie &amp; Fonti Reddito</p>
+    <div class="acc-hdr" onclick="toggleAcc('cat-fonti')"><span style="font-size:13px;font-weight:700;color:var(--tx2)">🗂 Categorie &amp; Fonti Reddito</span><span class="acc-arrow">▼</span></div>
+    <div class="acc-body" id="acc-cat-fonti">
 
     <!-- CATEGORIE DI SPESA -->
     <p style="font-size:11px;color:var(--tx4);font-weight:600;margin-bottom:8px">Categorie di spesa</p>
@@ -540,11 +551,14 @@ input:disabled{opacity:.5;background:transparent;border-color:transparent}
       </div>
     </div>
     <button class="bg2" style="width:100%;justify-content:center" onclick="document.getElementById('src-form').style.display='block';document.getElementById('ns-name').focus()">+ Nuova fonte di reddito</button>
+    </div>
+    </div>
   </div>
 
   <!-- GESTIONE CONTI -->
   <div class="card cp stsec">
-    <p class="sttl">🏦 Gestione Conti</p>
+    <div class="acc-hdr" onclick="toggleAcc('conti')"><span style="font-size:13px;font-weight:700;color:var(--tx2)">🏦 Gestione Conti</span><span class="acc-arrow">▼</span></div>
+    <div class="acc-body" id="acc-conti">
     <p style="font-size:11px;color:var(--tx4);margin-bottom:10px">Rinomina, aggiungi o rimuovi i conti. Il conto viene eliminato solo se non ha movimenti associati.</p>
     <div id="acct-list" style="margin-bottom:10px"></div>
     <!-- Form nuovo conto -->
@@ -560,20 +574,25 @@ input:disabled{opacity:.5;background:transparent;border-color:transparent}
       </div>
     </div>
     <button class="bg2" style="width:100%;justify-content:center" onclick="document.getElementById('acct-add-form').style.display='block';document.getElementById('na-name').focus()">+ Aggiungi nuovo conto</button>
+    </div>
   </div>
 
   <!-- SALDI INIZIALI -->
   <div class="card cp stsec">
+    <div class="acc-hdr" onclick="toggleAcc('saldi')"><span style="font-size:13px;font-weight:700;color:var(--tx2)">💵 Saldi Iniziali dei Conti</span><span class="acc-arrow">▼</span></div>
+    <div class="acc-body" id="acc-saldi">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <p class="sttl" style="margin:0">Saldi Iniziali dei Conti</p>
+      <p class="sttl" style="margin:0">Saldi Iniziali</p>
       <div id="bal-btns"></div>
     </div>
     <div id="bal-list"></div>
+    </div>
   </div>
 
   <!-- SYNC CIFRATO -->
   <div class="card cp stsec">
-    <p class="sttl">🔐 Sync Cloud — AES-256 + Supabase</p>
+    <div class="acc-hdr" onclick="toggleAcc('sync')"><span style="font-size:13px;font-weight:700;color:var(--tx2)">🔐 Sync Cloud — AES-256 + Supabase</span><span class="acc-arrow">▼</span></div>
+    <div class="acc-body" id="acc-sync">
     <p style="font-size:11px;color:var(--tx4);margin-bottom:10px;line-height:1.6">
       I dati vengono cifrati sul tuo dispositivo con AES-256 <strong>prima</strong> di
       essere inviati al cloud. Supabase riceve solo dati illeggibili.
@@ -633,11 +652,13 @@ input:disabled{opacity:.5;background:transparent;border-color:transparent}
       </button>
     </div>
     <input type="file" id="fi-enc" accept=".casafinance" style="display:none" onchange="impEncrypted(this)"/>
+    </div>
   </div>
 
   <!-- GESTIONE DATI -->
   <div class="card cp stsec">
-    <p class="sttl">Gestione Dati (non cifrato)</p>
+    <div class="acc-hdr" onclick="toggleAcc('dati')"><span style="font-size:13px;font-weight:700;color:var(--tx2)">🗄 Gestione Dati</span><span class="acc-arrow">▼</span></div>
+    <div class="acc-body" id="acc-dati">
     <button class="bdata" style="color:var(--gr);border-color:rgba(34,197,94,.2)" onclick="expJSON()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       Esporta tutto (JSON leggibile)
@@ -656,6 +677,7 @@ input:disabled{opacity:.5;background:transparent;border-color:transparent}
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.89"/></svg>
       Ripristina — elimina tutto
     </button>
+    </div>
   </div>
 
   <!-- RIEPILOGO -->
@@ -1677,6 +1699,18 @@ function renderAnnualReport(year){
 
 
 /* ══════════════════════════════════════════
+   ACCORDION — sezioni Impostazioni
+══════════════════════════════════════════ */
+function toggleAcc(id){
+  const body = document.getElementById('acc-'+id);
+  const hdr  = body?.previousElementSibling;
+  if(!body) return;
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  if(hdr) hdr.classList.toggle('open', !isOpen);
+}
+
+/* ══════════════════════════════════════════
    IMPOSTAZIONI
 ══════════════════════════════════════════ */
 function rSet(){
@@ -1801,23 +1835,25 @@ function getCCCycle(year, month){
   const startDay = cc.cycleStartDay||2;
   const payDays  = cc.paymentDays||45;
 
-  /* Logica ciclo (specifica):
-     - Inizio periodo : giorno startDay del mese N       (es. 02/04)
-     - Fine periodo   : giorno 1 del mese N+1            (es. 01/05)  ← chiusura periodo
-     - Chiusura ciclo : giorno startDay del mese N+1     (es. 02/05)  ← = inizio ciclo mese N+1
-     - Data addebito  : fine periodo + payDays           (es. 01/05 + 45 = 15/06) */
+  /* Logica ciclo — valida per qualsiasi startDay:
+     - Inizio periodo  : giorno startDay del mese N          es. startDay=2 → 02/05
+     - Fine periodo    : giorno (startDay-1) del mese N+1    es. startDay=2 → 01/06
+     - Chiusura ciclo  : giorno startDay del mese N+1        es. startDay=2 → 02/06
+       (coincide con inizio periodo del mese N+1)
+     - Data addebito   : fine periodo + payDays              es. 01/06 + 45 = 16/07
+     Nota: per startDay=1 → fine periodo = new Date(y,m+1,0) = ultimo giorno mese N */
   const startDate = ov.startDate
     ? new Date(ov.startDate+'T12:00:00')
-    : new Date(year, month, startDay);      // 02/N
+    : new Date(year, month, startDay);
 
   const endDate = ov.endDate
     ? new Date(ov.endDate+'T12:00:00')
-    : new Date(year, month+1, 1);          // 01/(N+1) — fine periodo / chiusura
+    : new Date(year, month+1, startDay-1);  // (startDay-1) del mese successivo
 
-  const closeDate = new Date(year, month+1, startDay); // 02/(N+1) — chiusura ciclo = inizio prossimo
+  const closeDate = new Date(year, month+1, startDay); // = inizio ciclo mese N+1
 
   const debitDate = new Date(endDate);
-  debitDate.setDate(debitDate.getDate()+payDays); // 01/(N+1) + 45 gg
+  debitDate.setDate(debitDate.getDate()+payDays);
 
   const startStr = startDate.toISOString().slice(0,10);
   const endStr   = endDate.toISOString().slice(0,10);
