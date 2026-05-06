@@ -255,10 +255,8 @@ input:disabled{opacity:.5;background:transparent;border-color:transparent}
     <p class="st">💳 Carta di Credito</p>
     <div id="cc-rows"></div>
   </div>
-  <p class="st">Conti — saldo corrente</p>
-  <div id="d-accts"></div>
-  <p class="st" style="margin-top:10px">Budget Mensile</p>
-  <div id="d-bud"></div>
+  <p class="st" style="margin-top:10px">📊 Budget Annuale per Categoria</p>
+  <div id="d-annual"></div>
   <div class="scroll-end"></div>
 </div>
 
@@ -1122,18 +1120,28 @@ function rDash(){
     ${cyc.debitStr>TODAY&&ccCycleSpent>0?`<p style="font-size:11px;color:var(--tx4);margin-top:5px">⏰ Da addebitare il ${cyc.debitDate.toLocaleDateString('it-IT')}: <strong style="color:var(--re)">${fmt(ccCycleSpent)}</strong></p>`:''}
   `;
 
-  // ACCOUNTS
-  document.getElementById('d-accts').innerHTML=getAccounts().map(a=>{
-    const v=bToday[a.id]||0;
-    return `<div class="card acr"><div class="acl"><span class="ace">${a.emoji}</span><div><div class="acn">${a.label}</div><div class="acs">saldo al ${NOW.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'})}</div></div></div><span class="acb" style="color:${v<0?'var(--re)':'var(--tx)'}">${fmt(v)}</span></div>`;
-  }).join('');
+  // BUDGET ANNUALE (sostituisce budget mensile nella home)
+  const annSpent={};
+  ST.budgets.forEach(b=>{ annSpent[b.id]=0; });
+  ST.transactions
+    .filter(t=>t.type==='expense'&&!t.straord&&!isFut(t.date)&&t.date.startsWith(String(sY)))
+    .forEach(t=>{ if(annSpent[t.category]!=null) annSpent[t.category]+=t.amount; });
 
-  // BUDGET
-  document.getElementById('d-bud').innerHTML=ST.budgets.map(b=>{
-    const s=sp[b.id]||0,pct=Math.min((s/b.limit)*100,100),ov=s>b.limit;
-    return `<div class="card bi" style="border-color:${ov?'var(--re)':b.color}">
-      <div class="bh"><span class="bn">${b.emoji} ${b.name}${ov?'<span class="bdg">SUPERATO</span>':''}</span><span style="font-size:11px;color:${ov?'var(--re)':'var(--tx3)'}">${fmt(s)} / ${fmt(b.limit)}</span></div>
-      <div class="bbar"><div class="bfill" style="width:${pct}%;background:${ov?'var(--re)':pct>80?'var(--or)':b.color}"></div></div>
+  document.getElementById('d-annual').innerHTML=ST.budgets.map(b=>{
+    const annLimit=b.limit*12;
+    const s=annSpent[b.id]||0;
+    const ratio=annLimit>0?s/annLimit:0;
+    const pct=Math.min(ratio*100,100).toFixed(1);
+    const ov=ratio>1;
+    const color=ratio>1?'var(--re)':ratio>0.9?'var(--or)':'var(--gr)';
+    const bg=ratio>1?'rgba(239,68,68,.06)':ratio>0.9?'rgba(249,115,22,.04)':'';
+    return `<div class="card bi" style="border-color:${ov?'var(--re)':b.color};${bg}">
+      <div class="bh">
+        <span class="bn">${b.emoji} ${b.name}${ov?'<span class="bdg">SUPERATO</span>':''}</span>
+        <span style="font-size:11px;color:${ov?'var(--re)':'var(--tx3)'}">${fmt(s)} / ${fmt(annLimit)}</span>
+      </div>
+      <div class="bbar"><div class="bfill" style="width:${pct}%;background:${color}"></div></div>
+      <p style="font-size:10px;color:var(--tx5);margin-top:3px">${(ratio*100).toFixed(1)}% del preventivo annuo · ${fmt(b.limit)}/mese × 12</p>
     </div>`;
   }).join('');
   updHdr();
