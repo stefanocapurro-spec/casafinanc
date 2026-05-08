@@ -252,11 +252,24 @@ input:disabled{opacity:.5;background:transparent;border-color:transparent}
   <div class="kgrid" id="d-kpi"></div>
   <!-- CARTA DI CREDITO -->
   <div class="card cp" style="margin-bottom:12px" id="cc-section">
-    <p class="st">💳 Carta di Credito</p>
-    <div id="cc-rows"></div>
+    <div class="acc-hdr open" onclick="toggleAcc('dash-cc')" style="padding:8px 2px;border-radius:8px">
+      <span class="st" style="margin:0">💳 Carta di Credito</span>
+      <span class="acc-arrow" style="font-size:12px;color:var(--tx4)">▼</span>
+    </div>
+    <div class="acc-body open" id="acc-dash-cc">
+      <div id="cc-rows"></div>
+    </div>
   </div>
-  <p class="st" style="margin-top:10px">📊 Budget Annuale per Categoria</p>
-  <div id="d-annual"></div>
+  <!-- BUDGET ANNUALE -->
+  <div class="card cp" style="margin-bottom:12px">
+    <div class="acc-hdr open" onclick="toggleAcc('dash-annual')" style="padding:8px 2px;border-radius:8px">
+      <span class="st" style="margin:0">📊 Budget Annuale per Categoria</span>
+      <span class="acc-arrow" style="font-size:12px;color:var(--tx4)">▼</span>
+    </div>
+    <div class="acc-body open" id="acc-dash-annual">
+      <div id="d-annual"></div>
+    </div>
+  </div>
   <div class="scroll-end"></div>
 </div>
 
