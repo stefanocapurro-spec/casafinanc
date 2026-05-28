@@ -2,7 +2,8 @@
 <html lang="it" data-theme="dark">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy"
+  content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co https://fonts.googleapis.com; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; object-src 'none'; base-uri 'self';"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
@@ -25,8 +26,12 @@
                    Conti editabili: rinomina, aggiungi, rimuovi (se senza movimenti).
                    Tutti gli usi di ACCTS sostituiti con getAccounts() dinamico.
 -->
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"
+  integrity="sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw"
+  crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
+  integrity="sha384-e6nUZLBkQ86NJ6TVVKAeSaK8jWa3NhkYWZFomE39AvDbQWeie9PlQqM3pmYW5d1g"
+  crossorigin="anonymous"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
 <style>
 :root{
@@ -783,8 +788,8 @@ input:disabled{opacity:.5;background:transparent;border-color:transparent}
 ══════════════════════════════════════════ */
 const ACCTS=[
   {id:'contanti',       label:'Contanti',         emoji:'💵',color:'#10b981'},
-  {id:'contoLui',       label:'Conto Stefano',    emoji:'👨',color:'#3b82f6'},
-  {id:'contoLei',       label:'Conto Stefania',   emoji:'👩',color:'#ec4899'},
+  {id:'contoLui',       label:'Conto Persona 1',  emoji:'👤',color:'#3b82f6'},
+  {id:'contoLei',       label:'Conto Persona 2',  emoji:'👤',color:'#ec4899'},
   {id:'contoCondiviso', label:'Conto Condiviso',  emoji:'🤝',color:'#8b5cf6'},
   {id:'cartaCredito',   label:'Carta di Credito', emoji:'💳',color:'#f59e0b'},
   {id:'contoRisparmio', label:'Conto Risparmio',  emoji:'🏦',color:'#14b8a6'},
@@ -819,7 +824,7 @@ const XLC={
   'Bollette - acqua':'utenze','Bollette - gas':'utenze','Bollette - luce':'utenze','Bollette - telefono':'utenze',
   'Casa - Tassa rifiuti':'utenze','Casa - affitto':'affitto','Casa - altro':'varie','Casa - cibo / cura casa':'alimentari',
   'Cellulare':'utenze','Contribuzioni':'varie','Gatto':'varie',
-  'Lavoro Stefania':'__hobby','Lavoro Stefano - stipendio':'__stip',
+  'Lavoro Persona 2':'__hobby','Lavoro Persona 1 - stipendio':'__stip',
   'Movimento di cassa':'__trf','Pagamento della carta di credito':'__trf',
   'Prodotti estetica':'varie','Regali':'svago',
   'Rimborsi':'__rimb','Salute - analisi / visite mediche':'salute',
@@ -911,7 +916,7 @@ window.addEventListener('beforeunload',()=>save());
    HELPERS
 ══════════════════════════════════════════ */
 const fmt=(n,sg=false)=>{const neg=n<0;const s=neg?'-':sg&&n>0?'+':'';return s+'€'+Math.abs(n).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2});};
-const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 const isFut=d=>d>TODAY;
 
 function mTx(y,m){
@@ -1268,7 +1273,7 @@ function delTx(id){
   // Componi messaggio descrittivo
   const typeLabel = t.type==='income'?'Entrata':t.type==='transfer'?'Giroconto':'Uscita';
   const date = new Date(t.date+'T12:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'});
-  const ac = ({contanti:'Contanti',contoLui:'Conto Stefano',contoLei:'Conto Stefania',contoCondiviso:'Conto Condiviso',cartaCredito:'Carta di Credito',contoRisparmio:'Conto Risparmio',salvadanaio:'Salvadanaio'})[t.account]||t.account;
+  const ac = ({contanti:'Contanti',contoLui:'Conto Persona 1',contoLei:'Conto Persona 2',contoCondiviso:'Conto Condiviso',cartaCredito:'Carta di Credito',contoRisparmio:'Conto Risparmio',salvadanaio:'Salvadanaio'})[t.account]||t.account;
   const amtColor = t.type==='income'?'var(--gr)':'var(--re)';
   const amtSign  = t.type==='income'?'+':'-';
   document.getElementById('confirm-body').innerHTML =
@@ -2363,7 +2368,7 @@ async function deriveKey(password, salt){
     'raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']
   );
   return crypto.subtle.deriveKey(
-    { name:'PBKDF2', salt, iterations:310000, hash:'SHA-256' },
+    { name:'PBKDF2', salt, iterations:600000, hash:'SHA-256' },
     keyMat,
     { name:'AES-GCM', length:256 },
     false,
@@ -2374,7 +2379,7 @@ async function deriveKey(password, salt){
 /** Cifra una stringa JSON. Ritorna un ArrayBuffer con: [salt(16)|iv(12)|ciphertext]. */
 async function encryptData(jsonStr, password){
   const enc  = new TextEncoder();
-  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const salt = crypto.getRandomValues(new Uint8Array(32));
   const iv   = crypto.getRandomValues(new Uint8Array(12));
   const key  = await deriveKey(password, salt);
   const ct   = await crypto.subtle.encrypt(
@@ -2563,11 +2568,11 @@ const SUPA_URL = 'https://cwfcxzvlvhwulhmgpbgu.supabase.co';
 const SUPA_KEY = 'CHIAVE_RIMOSSA';
 const SYNC_KEY_LS = 'cf_sync_key'; // chiave localStorage per la sync-key
 
-function getSyncKey(){ return localStorage.getItem(SYNC_KEY_LS)||''; }
+function getSyncKey(){ return sessionStorage.getItem(SYNC_KEY_LS)||''; }
 function saveSyncKey(){
   const v = document.getElementById('sync-key')?.value.trim();
   if(!v){ notify('Inserisci una chiave sync','err'); return; }
-  localStorage.setItem(SYNC_KEY_LS, v);
+  sessionStorage.setItem(SYNC_KEY_LS, v);
   updEncStatus();
   notify('Chiave sync salvata ✓ — uguale su tutti i tuoi dispositivi');
 }
