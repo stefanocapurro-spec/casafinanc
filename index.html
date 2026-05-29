@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8"/>
 <meta http-equiv="Content-Security-Policy"
-  content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co https://fonts.googleapis.com https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; object-src 'none'; base-uri 'self';">https://fonts.googleapis.com; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; object-src 'none'; base-uri 'self';"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co https://fonts.googleapis.com https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; object-src 'none'; base-uri 'self';">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
@@ -623,6 +624,22 @@ input:disabled{opacity:.5;background:transparent;border-color:transparent}
       </div>
       <div id="sync-live-status" style="font-size:10px;color:var(--tx4);text-align:right;min-width:60px"></div>
     </div>
+
+    <!-- Login Supabase -->
+    <p style="font-size:11px;color:var(--tx4);margin-bottom:6px;font-weight:600">Account cloud (login)</p>
+    <div id="auth-logged-out">
+      <input type="email" id="auth-email" placeholder="Email…" style="width:100%;margin-bottom:6px"/>
+      <input type="password" id="auth-password" placeholder="Password (min 8 caratteri)…" style="width:100%;margin-bottom:6px"/>
+      <div style="display:flex;gap:7px;margin-bottom:4px">
+        <button class="bp" style="flex:1;font-size:13px" onclick="supaLogin()">Accedi</button>
+        <button class="bg2" style="flex:1;font-size:13px" onclick="supaRegister()">Registrati</button>
+      </div>
+    </div>
+    <div id="auth-logged-in" style="display:none">
+      <p id="auth-user-email" style="font-size:12px;color:var(--gr);margin-bottom:6px">✓ Connesso</p>
+      <button class="bg2" style="width:100%;font-size:13px;margin-bottom:10px" onclick="supaLogout()">Disconnetti</button>
+    </div>
+    <div style="border-top:1px solid var(--bo);margin:8px 0 10px"></div>
 
     <!-- Password cifratura -->
     <p style="font-size:11px;color:var(--tx4);margin-bottom:6px;font-weight:600">Password cifratura (privata)</p>
@@ -2564,8 +2581,97 @@ async function _doDecryptImport(password){
    lasciare il dispositivo. Supabase vede
    solo testo cifrato illeggibile.
 ══════════════════════════════════════════ */
+/* ════════════════════════════════════════════
+   AUTENTICAZIONE SUPABASE
+════════════════════════════════════════════ */
+let _supaSession = null;
+
+// Carica sessione salvata all'avvio
+(function loadSession(){
+  try {
+    const saved = localStorage.getItem('cf_supa_session');
+    if(saved) _supaSession = JSON.parse(saved);
+  } catch(e) {}
+})();
+
+function getAuthHeaders(){
+  const token = _supaSession?.access_token;
+  if(!token) return { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` };
+  return { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${token}` };
+}
+
+function updateAuthUI(){
+  const email     = _supaSession?.user?.email;
+  const loggedIn  = document.getElementById('auth-logged-in');
+  const loggedOut = document.getElementById('auth-logged-out');
+  const emailEl   = document.getElementById('auth-user-email');
+  if(!loggedIn || !loggedOut) return;
+  if(email){
+    loggedIn.style.display  = '';
+    loggedOut.style.display = 'none';
+    if(emailEl) emailEl.textContent = '✓ ' + email;
+  } else {
+    loggedIn.style.display  = 'none';
+    loggedOut.style.display = '';
+  }
+}
+
+async function supaLogin(){
+  const email = document.getElementById('auth-email')?.value.trim();
+  const pwd   = document.getElementById('auth-password')?.value;
+  if(!email||!pwd){ notify('Inserisci email e password','err'); return; }
+  try{
+    const res = await fetch(`${SUPA_URL}/auth/v1/token?grant_type=password`,{
+      method:'POST',
+      headers:{'apikey':SUPA_KEY,'Content-Type':'application/json'},
+      body: JSON.stringify({email,password:pwd})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error_description||data.msg||'Login fallito');
+    _supaSession = data;
+    localStorage.setItem('cf_supa_session', JSON.stringify(data));
+    updateAuthUI();
+    notify('✓ Accesso effettuato come '+email);
+  } catch(e){ notify('Errore login: '+e.message,'err'); }
+}
+
+async function supaRegister(){
+  const email = document.getElementById('auth-email')?.value.trim();
+  const pwd   = document.getElementById('auth-password')?.value;
+  if(!email||!pwd){ notify('Inserisci email e password','err'); return; }
+  if(pwd.length<8){ notify('Password minimo 8 caratteri','err'); return; }
+  try{
+    const res = await fetch(`${SUPA_URL}/auth/v1/signup`,{
+      method:'POST',
+      headers:{'apikey':SUPA_KEY,'Content-Type':'application/json'},
+      body: JSON.stringify({email,password:pwd})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error_description||data.msg||'Registrazione fallita');
+    _supaSession = data;
+    if(data.access_token) localStorage.setItem('cf_supa_session', JSON.stringify(data));
+    updateAuthUI();
+    notify('✓ Account creato! Ora puoi usare il cloud sync.');
+  } catch(e){ notify('Errore registrazione: '+e.message,'err'); }
+}
+
+async function supaLogout(){
+  try{
+    if(_supaSession?.access_token){
+      await fetch(`${SUPA_URL}/auth/v1/logout`,{
+        method:'POST',
+        headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${_supaSession.access_token}`}
+      });
+    }
+  } catch(e){}
+  _supaSession = null;
+  localStorage.removeItem('cf_supa_session');
+  updateAuthUI();
+  notify('Disconnesso dal cloud');
+}
+
 const SUPA_URL = 'https://cwfcxzvlvhwulhmgpbgu.supabase.co';
-const SUPA_KEY = 'CHIAVE_RIMOSSA';
+const SUPA_KEY = 'sb_publishable_80iNTcdIcDqsdw4UQnZKYg_G_sJ1SVj';
 const SYNC_KEY_LS = 'cf_sync_key'; // chiave localStorage per la sync-key
 
 function getSyncKey(){ return sessionStorage.getItem(SYNC_KEY_LS)||''; }
@@ -2601,15 +2707,15 @@ async function pushToCloud(silent=false){
     // 2. Converti in base64 per il trasporto
     const b64    = btoa(String.fromCharCode(...new Uint8Array(buf)));
     // 3. Upsert su Supabase (inserisce o aggiorna la riga con quel sync_key)
+    if(!_supaSession?.access_token){ if(!silent) notify('Accedi prima al cloud nelle impostazioni','err'); setSyncStatus('','',''); return; }
     const res = await fetch(`${SUPA_URL}/rest/v1/sync_data`, {
       method: 'POST',
       headers: {
         'Content-Type':  'application/json',
-        'apikey':         SUPA_KEY,
-        'Authorization': `Bearer ${SUPA_KEY}`,
+        ...getAuthHeaders(),
         'Prefer':        'resolution=merge-duplicates,return=minimal',
       },
-      body: JSON.stringify({ device_id: syncKey, payload: b64, updated_at: new Date().toISOString() })
+      body: JSON.stringify({ device_id: syncKey, payload: b64, updated_at: new Date().toISOString(), user_id: _supaSession.user.id })
     });
     if(!res.ok){ throw new Error('HTTP '+res.status); }
     const ts = new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
@@ -2635,7 +2741,7 @@ async function pullFromCloud(){
     // 1. Leggi da Supabase
     const res = await fetch(
       `${SUPA_URL}/rest/v1/sync_data?device_id=eq.${encodeURIComponent(syncKey)}&order=updated_at.desc&limit=1`,
-      { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
+      { headers: { 'Content-Type': 'application/json', ...getAuthHeaders() } }
     );
     if(!res.ok) throw new Error('HTTP '+res.status);
     const rows = await res.json();
@@ -3041,6 +3147,7 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>
 (function(){
   load();
   loadPrefs();
+  updateAuthUI();
   const l=MN[sM]+' '+sY;
   ['lbl-d','lbl-m','lbl-b'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=l;});
   document.getElementById('lbl-r').textContent=l;
