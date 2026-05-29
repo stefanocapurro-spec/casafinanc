@@ -625,41 +625,55 @@ input:disabled{opacity:.5;background:transparent;border-color:transparent}
       <div id="sync-live-status" style="font-size:10px;color:var(--tx4);text-align:right;min-width:60px"></div>
     </div>
 
-    <!-- Login Supabase -->
-    <p style="font-size:11px;color:var(--tx4);margin-bottom:6px;font-weight:600">Account cloud (login)</p>
-    <div id="auth-logged-out">
-      <input type="email" id="auth-email" placeholder="Email…" style="width:100%;margin-bottom:6px"/>
-      <input type="password" id="auth-password" placeholder="Password (min 8 caratteri)…" style="width:100%;margin-bottom:6px"/>
-      <div style="display:flex;gap:7px;margin-bottom:4px">
-        <button class="bp" style="flex:1;font-size:13px" onclick="supaLogin()">Accedi</button>
-        <button class="bg2" style="flex:1;font-size:13px" onclick="supaRegister()">Registrati</button>
+    <!-- Accesso con nome utente + password -->
+    <p style="font-size:11px;color:var(--tx4);margin-bottom:6px;font-weight:600">Accesso sicuro</p>
+    <p style="font-size:10px;color:var(--tx5);margin-bottom:10px;line-height:1.6">Nome utente e password identificano il tuo spazio sul cloud e cifrano i dati localmente. La password <strong>non viene mai salvata</strong>.</p>
+
+    <!-- Stato sessione -->
+    <div id="enc-status" style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:var(--rads);margin-bottom:12px;background:var(--su2)">
+      <span id="enc-status-icon" style="font-size:18px">🔓</span>
+      <div style="flex:1">
+        <p id="enc-status-txt" style="font-size:12px;font-weight:600;color:var(--tx2)">Non autenticato</p>
+        <p id="enc-status-sub" style="font-size:10px;color:var(--tx4)">Inserisci nome utente e password per abilitare il sync cifrato</p>
+      </div>
+      <div id="sync-live-status" style="font-size:10px;color:var(--tx4);text-align:right;min-width:60px"></div>
+    </div>
+
+    <!-- Form login (visibile se non autenticato) -->
+    <div id="auth-form">
+      <div style="margin-bottom:7px">
+        <label class="fl">Nome utente</label>
+        <input type="text" id="auth-username" placeholder="es. stefano" autocomplete="username"
+          style="text-transform:lowercase" oninput="this.value=this.value.toLowerCase().replace(/\s/g,'')"/>
+      </div>
+      <div style="margin-bottom:7px">
+        <label class="fl">Password (min. 8 caratteri)</label>
+        <input type="password" id="auth-pwd" placeholder="Password…" autocomplete="current-password"
+          onkeydown="if(event.key==='Enter')authLogin()"/>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px">
+        <button class="bp" onclick="authLogin()">🔓 Accedi</button>
+        <button class="bg2" onclick="authShowReg()">Primo accesso…</button>
+      </div>
+      <!-- Form registrazione (nascosto) -->
+      <div id="auth-reg-form" style="display:none;background:var(--su2);border-radius:var(--rads);padding:10px;margin-bottom:10px">
+        <p style="font-size:11px;color:var(--tx3);font-weight:600;margin-bottom:8px">Primo accesso — conferma password</p>
+        <input type="password" id="auth-pwd2" placeholder="Conferma password…" autocomplete="new-password"
+          style="margin-bottom:7px" onkeydown="if(event.key==='Enter')authRegister()"/>
+        <button class="bp" style="width:100%" onclick="authRegister()">✓ Crea account e accedi</button>
       </div>
     </div>
-    <div id="auth-logged-in" style="display:none">
-      <p id="auth-user-email" style="font-size:12px;color:var(--gr);margin-bottom:6px">✓ Connesso</p>
-      <button class="bg2" style="width:100%;font-size:13px;margin-bottom:10px" onclick="supaLogout()">Disconnetti</button>
-    </div>
-    <div style="border-top:1px solid var(--bo);margin:8px 0 10px"></div>
 
-    <!-- Password cifratura -->
-    <p style="font-size:11px;color:var(--tx4);margin-bottom:6px;font-weight:600">Password cifratura (privata)</p>
-    <div style="display:flex;gap:7px;margin-bottom:7px">
-      <input type="password" id="enc-pwd" placeholder="Password cifratura…" style="flex:1"/>
-      <button class="bp" style="width:auto;padding:9px 14px;font-size:13px" onclick="setEncPassword()">Imposta</button>
+    <!-- Stato loggato (visibile se autenticato) -->
+    <div id="auth-logged-panel" style="display:none;margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--su2);border-radius:var(--rads);margin-bottom:8px">
+        <div>
+          <p id="auth-logged-user" style="font-size:13px;font-weight:700;color:var(--gr)">✓ Connesso</p>
+          <p style="font-size:10px;color:var(--tx4)">Sessione attiva — dati cifrati con AES-256</p>
+        </div>
+        <button class="bg2" style="padding:6px 12px;font-size:12px" onclick="authLogout()">Esci</button>
+      </div>
     </div>
-    <div style="display:flex;gap:7px;margin-bottom:4px">
-      <input type="password" id="enc-pwd2" placeholder="Conferma password…" style="flex:1"/>
-      <button class="bg2" style="padding:9px 12px;font-size:13px" onclick="clearEncPassword()">✕</button>
-    </div>
-    <p style="font-size:10px;color:var(--tx5);margin-bottom:12px">Min. 8 caratteri. Non viene mai salvata né inviata.</p>
-
-    <!-- Chiave sync condivisa -->
-    <p style="font-size:11px;color:var(--tx4);margin-bottom:6px;font-weight:600">Chiave sync (uguale su tutti i dispositivi)</p>
-    <div style="display:flex;gap:7px;margin-bottom:4px">
-      <input type="text" id="sync-key" placeholder="es. famiglia2026" style="flex:1;font-family:monospace"/>
-      <button class="bp" style="width:auto;padding:9px 14px;font-size:13px" onclick="saveSyncKey()">Salva</button>
-    </div>
-    <p style="font-size:10px;color:var(--tx5);margin-bottom:12px">Scegli una parola segreta uguale su tutti i tuoi dispositivi. Non è la password di cifratura.</p>
 
     <!-- Pulsanti cloud -->
     <button class="bdata" style="color:var(--ac);border-color:rgba(245,158,11,.3)" onclick="pushToCloud()">
@@ -671,7 +685,7 @@ input:disabled{opacity:.5;background:transparent;border-color:transparent}
       Ricevi dal cloud (pull)
     </button>
 
-    <!-- Separatore file locale -->
+    <!-- Backup file locale -->
     <div style="border-top:1px solid var(--bo);margin:10px 0 8px"></div>
     <p style="font-size:10px;color:var(--tx5);margin-bottom:7px">Backup file locale (alternativa al cloud):</p>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
@@ -1363,16 +1377,25 @@ function checkBudgetAfterTx(y, m){
 
 /** Mostra il modale budget-alert. */
 function showBudgetAlert(type, title, body, requiresAction){
+  const isBad = type==='warn-bad';
+  // Colori fissi ad alto contrasto — indipendenti dal tema
+  const panelBg    = isBad ? '#fef2f2' : '#fffbeb';
+  const panelBorder= isBad ? '#dc2626' : '#d97706';
+  const titleColor = isBad ? '#991b1b' : '#92400e';
+  const bodyColor  = isBad ? '#7f1d1d' : '#78350f';
+
   document.getElementById('ba-title').textContent = title;
+  document.getElementById('ba-title').style.color = titleColor;
   document.getElementById('ba-body').textContent  = body;
+  document.getElementById('ba-body').style.color  = bodyColor;
+
+  const panel = document.getElementById('ba-panel');
+  panel.style.background   = panelBg;
+  panel.style.border       = `2px solid ${panelBorder}`;
+
   const actionMsg = document.getElementById('ba-action-msg');
   actionMsg.style.display = requiresAction ? 'block' : 'none';
-  // Colore del pannello
-  const panel = document.getElementById('ba-panel');
-  panel.style.borderColor = type==='warn-bad' ? 'var(--re)' : 'var(--or)';
-  panel.style.background  = type==='warn-bad' ? '#450a0a'   : '#431407';
-  document.getElementById('ba-title').style.color = type==='warn-bad' ? 'var(--re)' : 'var(--or)';
-  // Store whether action required for later check
+
   document.getElementById('modal-budget-alert').dataset.requiresAction = requiresAction?'1':'0';
   openModal('modal-budget-alert');
 }
@@ -2367,18 +2390,124 @@ function resetAll(){
 ══════════════════════════════════════════ */
 /* ══════════════════════════════════════════
    CIFRATURA AES-256-GCM (Web Crypto API)
-   Password → PBKDF2 → chiave AES-256-GCM
-   Nessuna libreria esterna richiesta.
+   La chiave è derivata da username:password
+   tramite PBKDF2 — nessuna libreria esterna.
    Funziona su Chrome, Safari, Firefox, Edge.
 ══════════════════════════════════════════ */
+let _encPwd = null; // stringa "username:password" in memoria, mai su disco
 
-// La password di cifratura è tenuta SOLO in memoria (mai salvata su disco)
-let _encPwd = null;
+/* ══════════════════════════════════════════
+   AUTENTICAZIONE — username + password
+   La chiave di cifratura AES-256 è derivata
+   da username:password via PBKDF2.
+   Il sync key su Supabase = username.
+   La password NON viene mai salvata.
+══════════════════════════════════════════ */
 
-/** Ritorna true se la password è impostata in sessione. */
+const AUTH_USER_KEY = 'cf_auth_user'; // salva solo lo username (non la password)
+
+/** Ritorna lo username salvato in localStorage (se presente). */
+function getStoredUser(){ return localStorage.getItem(AUTH_USER_KEY)||''; }
+
+/** Ritorna la chiave sync (= username). */
+function getSyncKey(){ return getStoredUser(); }
+
+/** Costruisce la stringa usata come seme per la cifratura. */
+function _authSeed(username, password){ return username.toLowerCase().trim()+':'+password; }
+
+/** Autentica: deriva la chiave enc da username+password e salva lo username. */
+async function authLogin(){
+  const u = document.getElementById('auth-username')?.value.trim().toLowerCase();
+  const p = document.getElementById('auth-pwd')?.value;
+  if(!u){ notify('Inserisci il nome utente','err'); return; }
+  if(!p||p.length<8){ notify('La password deve essere di almeno 8 caratteri','err'); return; }
+  // Deriva la chiave di cifratura dalla combinazione username:password
+  _encPwd = _authSeed(u, p);
+  localStorage.setItem(AUTH_USER_KEY, u);
+  document.getElementById('auth-pwd').value = '';
+  document.getElementById('auth-reg-form').style.display = 'none';
+  updEncStatus();
+  notify('🔐 Accesso eseguito — dati cifrati con AES-256 ✓');
+  // Auto-pull dal cloud
+  if(getSyncKey()) pullFromCloud();
+}
+
+/** Mostra il form di registrazione (primo accesso). */
+function authShowReg(){
+  const rf = document.getElementById('auth-reg-form');
+  rf.style.display = rf.style.display==='none' ? 'block' : 'none';
+  if(rf.style.display==='block') document.getElementById('auth-pwd2')?.focus();
+}
+
+/** Registra un nuovo account: verifica che le due password coincidano. */
+async function authRegister(){
+  const u  = document.getElementById('auth-username')?.value.trim().toLowerCase();
+  const p1 = document.getElementById('auth-pwd')?.value;
+  const p2 = document.getElementById('auth-pwd2')?.value;
+  if(!u){ notify('Inserisci un nome utente','err'); return; }
+  if(!p1||p1.length<8){ notify('La password deve essere di almeno 8 caratteri','err'); return; }
+  if(p1!==p2){ notify('Le due password non coincidono','err'); return; }
+  _encPwd = _authSeed(u, p1);
+  localStorage.setItem(AUTH_USER_KEY, u);
+  document.getElementById('auth-pwd').value  = '';
+  document.getElementById('auth-pwd2').value = '';
+  document.getElementById('auth-reg-form').style.display = 'none';
+  updEncStatus();
+  notify('🔐 Account creato — benvenuto, '+u+'! Effettua un primo push per salvare i dati sul cloud.');
+}
+
+/** Logout: rimuove la chiave dalla memoria (non i dati locali). */
+function authLogout(){
+  _encPwd = null;
+  updEncStatus();
+  notify('Sessione terminata — i dati locali sono al sicuro','warn');
+}
+
+/** Aggiorna l'interfaccia auth in base allo stato. */
+function updEncStatus(){
+  const username    = getStoredUser();
+  const isAuth      = hasEncPwd();
+  const icon = document.getElementById('enc-status-icon');
+  const txt  = document.getElementById('enc-status-txt');
+  const sub  = document.getElementById('enc-status-sub');
+  const authForm    = document.getElementById('auth-form');
+  const loggedPanel = document.getElementById('auth-logged-panel');
+
+  if(isAuth){
+    if(icon){ icon.textContent='🔐'; }
+    if(txt){ txt.textContent='Connesso come '+username; txt.style.color='var(--gr)'; }
+    if(sub) sub.textContent='Sync cloud attivo · dati cifrati con AES-256';
+    if(authForm)    authForm.style.display='none';
+    if(loggedPanel) loggedPanel.style.display='block';
+    const ul = document.getElementById('auth-logged-user');
+    if(ul) ul.textContent='✓ '+username;
+  } else {
+    if(icon){ icon.textContent='🔓'; }
+    if(txt){ txt.textContent= username ? 'Bentornato, '+username+' — inserisci la password' : 'Non autenticato'; txt.style.color='var(--tx2)'; }
+    if(sub) sub.textContent='Inserisci nome utente e password per cifrare e sincronizzare i dati';
+    if(authForm){
+      authForm.style.display='block';
+      // Pre-compila username se già noto
+      const unEl=document.getElementById('auth-username');
+      if(unEl&&username) unEl.value=username;
+    }
+    if(loggedPanel) loggedPanel.style.display='none';
+  }
+}
+
+/* Alias per compatibilità con il codice esistente */
+function setEncPassword(){ authLogin(); }
+function clearEncPassword(){ authLogout(); }
+function saveSyncKey(){ /* non più necessario — sync key = username */ }
 function hasEncPwd(){ return !!_encPwd; }
 
-/** Deriva una chiave AES-256-GCM dalla password usando PBKDF2 + salt. */
+/* Funzioni Supabase legacy rimosse — non più usate */
+function supaLogin(){ authLogin(); }
+function supaRegister(){ authRegister(); }
+function supaLogout(){ authLogout(); }
+
+/* ══════════════════════════════════════════
+   CIFRATURA AES-256-GCM
 async function deriveKey(password, salt){
   const enc = new TextEncoder();
   const keyMat = await crypto.subtle.importKey(
@@ -2437,57 +2566,11 @@ async function decryptData(buffer, password){
 /* ──────────────────────────────────────────
    UI: Gestione password in sessione
 ────────────────────────────────────────── */
-function setEncPassword(){
-  const p1 = document.getElementById('enc-pwd').value;
-  const p2 = document.getElementById('enc-pwd2').value;
-  if(!p1){ notify('Inserisci una password','err'); return; }
-  if(p1.length < 8){ notify('La password deve essere di almeno 8 caratteri','err'); return; }
-  if(p1 !== p2){ notify('Le password non coincidono','err'); return; }
-  _encPwd = p1;
-  document.getElementById('enc-pwd').value  = '';
-  document.getElementById('enc-pwd2').value = '';
-  updEncStatus();
-  notify('🔐 Password impostata — sessione protetta ✓');
-}
+// setEncPassword moved to auth module
 
-function clearEncPassword(){
-  _encPwd = null;
-  document.getElementById('enc-pwd').value  = '';
-  document.getElementById('enc-pwd2').value = '';
-  updEncStatus();
-  notify('Password rimossa dalla sessione','warn');
-}
+// clearEncPassword moved to auth module
 
-function updEncStatus(){
-  const icon = document.getElementById('enc-status-icon');
-  const txt  = document.getElementById('enc-status-txt');
-  const sub  = document.getElementById('enc-status-sub');
-  if(!icon) return;
-  const hasPwd = hasEncPwd();
-  const hasSK  = !!getSyncKey();
-  const ready  = hasPwd && hasSK;
-  if(ready){
-    icon.textContent = '🔐';
-    txt.textContent  = 'Sync cloud attivo — cifrato AES-256';
-    txt.style.color  = 'var(--gr)';
-    sub.textContent  = 'Auto-push ad ogni salvataggio · Pull automatico ogni 5 min.';
-  } else if(hasPwd && !hasSK){
-    icon.textContent = '🔑';
-    txt.textContent  = 'Password OK — manca la chiave sync';
-    txt.style.color  = 'var(--or)';
-    sub.textContent  = 'Inserisci la stessa chiave sync su tutti i dispositivi.';
-  } else if(!hasPwd && hasSK){
-    icon.textContent = '🔓';
-    txt.textContent  = 'Chiave sync OK — manca la password';
-    txt.style.color  = 'var(--or)';
-    sub.textContent  = 'Imposta la password di cifratura per abilitare il sync.';
-  } else {
-    icon.textContent = '🔓';
-    txt.textContent  = 'Sync cloud non configurato';
-    txt.style.color  = 'var(--tx2)';
-    sub.textContent  = 'Imposta password e chiave sync per abilitare il cloud.';
-  }
-}
+// updEncStatus rimosso — ora gestito dall'autenticazione username+password
 
 /* ──────────────────────────────────────────
    ESPORTA file cifrato .casafinance
@@ -2616,72 +2699,18 @@ function updateAuthUI(){
   }
 }
 
-async function supaLogin(){
-  const email = document.getElementById('auth-email')?.value.trim();
-  const pwd   = document.getElementById('auth-password')?.value;
-  if(!email||!pwd){ notify('Inserisci email e password','err'); return; }
-  try{
-    const res = await fetch(`${SUPA_URL}/auth/v1/token?grant_type=password`,{
-      method:'POST',
-      headers:{'apikey':SUPA_KEY,'Content-Type':'application/json'},
-      body: JSON.stringify({email,password:pwd})
-    });
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.error_description||data.msg||'Login fallito');
-    _supaSession = data;
-    localStorage.setItem('cf_supa_session', JSON.stringify(data));
-    updateAuthUI();
-    notify('✓ Accesso effettuato come '+email);
-  } catch(e){ notify('Errore login: '+e.message,'err'); }
-}
+// supaLogin moved to auth module
 
-async function supaRegister(){
-  const email = document.getElementById('auth-email')?.value.trim();
-  const pwd   = document.getElementById('auth-password')?.value;
-  if(!email||!pwd){ notify('Inserisci email e password','err'); return; }
-  if(pwd.length<8){ notify('Password minimo 8 caratteri','err'); return; }
-  try{
-    const res = await fetch(`${SUPA_URL}/auth/v1/signup`,{
-      method:'POST',
-      headers:{'apikey':SUPA_KEY,'Content-Type':'application/json'},
-      body: JSON.stringify({email,password:pwd})
-    });
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.error_description||data.msg||'Registrazione fallita');
-    _supaSession = data;
-    if(data.access_token) localStorage.setItem('cf_supa_session', JSON.stringify(data));
-    updateAuthUI();
-    notify('✓ Account creato! Ora puoi usare il cloud sync.');
-  } catch(e){ notify('Errore registrazione: '+e.message,'err'); }
-}
+// supaRegister moved to auth module
 
-async function supaLogout(){
-  try{
-    if(_supaSession?.access_token){
-      await fetch(`${SUPA_URL}/auth/v1/logout`,{
-        method:'POST',
-        headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${_supaSession.access_token}`}
-      });
-    }
-  } catch(e){}
-  _supaSession = null;
-  localStorage.removeItem('cf_supa_session');
-  updateAuthUI();
-  notify('Disconnesso dal cloud');
-}
+// supaLogout moved to auth module
 
 const SUPA_URL = 'https://cwfcxzvlvhwulhmgpbgu.supabase.co';
 const SUPA_KEY = 'sb_publishable_80iNTcdIcDqsdw4UQnZKYg_G_sJ1SVj';
 const SYNC_KEY_LS = 'cf_sync_key'; // chiave localStorage per la sync-key
 
-function getSyncKey(){ return sessionStorage.getItem(SYNC_KEY_LS)||''; }
-function saveSyncKey(){
-  const v = document.getElementById('sync-key')?.value.trim();
-  if(!v){ notify('Inserisci una chiave sync','err'); return; }
-  sessionStorage.setItem(SYNC_KEY_LS, v);
-  updEncStatus();
-  notify('Chiave sync salvata ✓ — uguale su tutti i tuoi dispositivi');
-}
+// getSyncKey: see auth module
+// saveSyncKey: see auth module
 
 /** Aggiorna l'indicatore di stato sync nell'header */
 function setSyncStatus(icon, msg, color){
@@ -3184,13 +3213,13 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>
 <!-- MODAL: BUDGET ALERT -->
 <div class="mbg" id="modal-budget-alert" onclick="if(event.target===this&&this.dataset.requiresAction!=='1')closeModal('modal-budget-alert')">
   <div class="modal">
-    <div id="ba-panel" style="border:1px solid var(--or);border-radius:12px;padding:14px;margin-bottom:16px;background:#431407">
-      <p id="ba-title" style="font-size:14px;font-weight:700;color:var(--or);margin-bottom:8px"></p>
-      <pre id="ba-body" style="font-size:13px;color:var(--tx2);white-space:pre-wrap;font-family:var(--ff);margin:0;line-height:1.6"></pre>
+    <div id="ba-panel" style="border-radius:12px;padding:16px;margin-bottom:16px">
+      <p id="ba-title" style="font-size:15px;font-weight:800;margin-bottom:10px"></p>
+      <pre id="ba-body" style="font-size:13px;white-space:pre-wrap;font-family:var(--ff);margin:0;line-height:1.7"></pre>
     </div>
-    <div id="ba-action-msg" style="display:none;background:rgba(239,68,68,.1);border:1px solid var(--re);border-radius:10px;padding:10px 14px;margin-bottom:14px">
-      <p style="font-size:13px;color:var(--re);font-weight:600">🔧 Azione richiesta</p>
-      <p style="font-size:12px;color:var(--tx3);margin-top:4px">Modifica i limiti delle categorie (tocca ✏ nella pagina Budget) fino a quando il totale rientra nel budget mensile. Il pannello si chiuderà automaticamente.</p>
+    <div id="ba-action-msg" style="display:none;background:#fef2f2;border:2px solid #dc2626;border-radius:10px;padding:12px 14px;margin-bottom:14px">
+      <p style="font-size:13px;color:#991b1b;font-weight:700">🔧 Azione richiesta</p>
+      <p style="font-size:12px;color:#7f1d1d;margin-top:4px">Modifica i limiti delle categorie (tocca ✏ nella pagina Budget) fino a quando il totale rientra nel budget mensile. Il pannello si chiuderà automaticamente.</p>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <button class="bg2" style="justify-content:center;padding:12px"
