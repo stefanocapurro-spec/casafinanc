@@ -1,0 +1,53 @@
+# .github/workflows/keepalive.yml
+#
+# Fa due cose ogni giorno alle 09:00 UTC:
+#   1. Commit vuoto → GitHub Pages rimane attivo (non viene disabilitato)
+#   2. Ping a Supabase → il database non viene messo in pausa (free tier: pausa dopo 7 gg)
+
+name: Keep Alive
+
+on:
+  schedule:
+    - cron: '0 9 * * *'    # ogni giorno alle 09:00 UTC (11:00 ora italiana in estate)
+  workflow_dispatch:         # esecuzione manuale dalla tab Actions di GitHub
+
+permissions:
+  contents: write
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+
+      # ── 1. Commit vuoto per tenere attivo GitHub Pages ──────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Commit vuoto (keep GitHub Pages alive)
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty \
+            -m "chore: keep-alive $(date +'%Y-%m-%d') [skip ci]"
+          git push
+
+      # ── 2. Ping Supabase per evitare la pausa del database ──────────
+      # Fa una semplice lettura dalla tabella sync_data.
+      # Anche una risposta vuota è sufficiente a segnalare attività.
+      - name: Ping Supabase (keep database alive)
+        env:
+          SUPA_URL: https://cwfcxzvlvhwulhmgpbgu.supabase.co
+          SUPA_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN3ZmN4enZsdmh3dWxobWdwYmd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NTcyMDksImV4cCI6MjA5MTMzMzIwOX0.BCQnhfU_230N-DZsdqEzLDGGXOLTQTVX1KlHJzARHXk
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "$SUPA_URL/rest/v1/sync_data?limit=1" \
+            -H "apikey: $SUPA_KEY" \
+            -H "Authorization: Bearer $SUPA_KEY")
+          echo "Supabase ping → HTTP $STATUS"
+          if [ "$STATUS" = "200" ] || [ "$STATUS" = "206" ]; then
+            echo "✓ Supabase attivo"
+          else
+            echo "⚠ Risposta inattesa: $STATUS"
+          fi

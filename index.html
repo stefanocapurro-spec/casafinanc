@@ -606,85 +606,35 @@ input:disabled{opacity:.5;background:transparent;border-color:transparent}
     </div>
   </div>
 
-  <!-- SYNC CIFRATO -->
+  
+    <!-- SYNC CLOUD -->
   <div class="card cp stsec">
-    <div class="acc-hdr" onclick="toggleAcc('sync')"><span style="font-size:13px;font-weight:700;color:var(--tx2)">🔐 Sync Cloud — AES-256 + Supabase</span><span class="acc-arrow">▼</span></div>
+    <div class="acc-hdr" onclick="toggleAcc('sync')">
+      <span style="font-size:13px;font-weight:700;color:var(--tx2)">☁️ Account &amp; Sync Cloud</span>
+      <span class="acc-arrow">▼</span>
+    </div>
     <div class="acc-body" id="acc-sync">
-    <p style="font-size:11px;color:var(--tx4);margin-bottom:10px;line-height:1.6">
-      I dati vengono cifrati sul tuo dispositivo con AES-256 <strong>prima</strong> di
-      essere inviati al cloud. Supabase riceve solo dati illeggibili.
-    </p>
-
-    <!-- Stato sync -->
-    <div id="enc-status" style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:var(--rads);margin-bottom:10px;background:var(--su2)">
-      <span id="enc-status-icon" style="font-size:18px">🔓</span>
-      <div style="flex:1">
-        <p id="enc-status-txt" style="font-size:12px;font-weight:600;color:var(--tx2)">Password non impostata</p>
-        <p id="enc-status-sub" style="font-size:10px;color:var(--tx4)">Imposta password e chiave sync per abilitare il cloud</p>
+      <div id="sync-logged-out">
+        <p style="font-size:12px;color:var(--tx3);margin-bottom:10px">Non sei autenticato.</p>
+        <button class="bp" style="width:100%" onclick="showLoginModal()">🔑 Accedi / Registrati</button>
       </div>
-      <div id="sync-live-status" style="font-size:10px;color:var(--tx4);text-align:right;min-width:60px"></div>
-    </div>
-
-    <!-- Login Supabase -->
-    <p style="font-size:11px;color:var(--tx4);margin-bottom:6px;font-weight:600">Account cloud (login)</p>
-    <div id="auth-logged-out">
-      <input type="email" id="auth-email" placeholder="Email…" style="width:100%;margin-bottom:6px"/>
-      <input type="password" id="auth-password" placeholder="Password (min 8 caratteri)…" style="width:100%;margin-bottom:6px"/>
-      <div style="display:flex;gap:7px;margin-bottom:4px">
-        <button class="bp" style="flex:1;font-size:13px" onclick="supaLogin()">Accedi</button>
-        <button class="bg2" style="flex:1;font-size:13px" onclick="supaRegister()">Registrati</button>
+      <div id="sync-logged-in" style="display:none">
+        <div style="background:var(--su2);border-radius:var(--rads);padding:10px 12px;margin-bottom:10px">
+          <p id="sync-user-label" style="font-size:13px;font-weight:700;color:var(--gr)">✓ Connesso</p>
+          <p style="font-size:10px;color:var(--tx4);margin-top:2px">Dati cifrati AES-256 · sync automatico ad ogni salvataggio</p>
+          <div id="sync-status-line" style="font-size:10px;color:var(--tx5);margin-top:4px"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <button class="bdata" style="justify-content:center" onclick="pushToCloud(false)">
+            ↑ Invia ora
+          </button>
+          <button class="bdata" style="justify-content:center" onclick="pullFromCloud()">
+            ↓ Ricevi ora
+          </button>
+        </div>
+        <button class="bg2" style="width:100%;justify-content:center;color:var(--re);border-color:rgba(239,68,68,.3)"
+          onclick="authLogout()">Esci dall'account</button>
       </div>
-    </div>
-    <div id="auth-logged-in" style="display:none">
-      <p id="auth-user-email" style="font-size:12px;color:var(--gr);margin-bottom:6px">✓ Connesso</p>
-      <button class="bg2" style="width:100%;font-size:13px;margin-bottom:10px" onclick="supaLogout()">Disconnetti</button>
-    </div>
-    <div style="border-top:1px solid var(--bo);margin:8px 0 10px"></div>
-
-    <!-- Password cifratura -->
-    <p style="font-size:11px;color:var(--tx4);margin-bottom:6px;font-weight:600">Password cifratura (privata)</p>
-    <div style="display:flex;gap:7px;margin-bottom:7px">
-      <input type="password" id="enc-pwd" placeholder="Password cifratura…" style="flex:1"/>
-      <button class="bp" style="width:auto;padding:9px 14px;font-size:13px" onclick="setEncPassword()">Imposta</button>
-    </div>
-    <div style="display:flex;gap:7px;margin-bottom:4px">
-      <input type="password" id="enc-pwd2" placeholder="Conferma password…" style="flex:1"/>
-      <button class="bg2" style="padding:9px 12px;font-size:13px" onclick="clearEncPassword()">✕</button>
-    </div>
-    <p style="font-size:10px;color:var(--tx5);margin-bottom:12px">Min. 8 caratteri. Non viene mai salvata né inviata.</p>
-
-    <!-- Chiave sync condivisa -->
-    <p style="font-size:11px;color:var(--tx4);margin-bottom:6px;font-weight:600">Chiave sync (uguale su tutti i dispositivi)</p>
-    <div style="display:flex;gap:7px;margin-bottom:4px">
-      <input type="text" id="sync-key" placeholder="es. famiglia2026" style="flex:1;font-family:monospace"/>
-      <button class="bp" style="width:auto;padding:9px 14px;font-size:13px" onclick="saveSyncKey()">Salva</button>
-    </div>
-    <p style="font-size:10px;color:var(--tx5);margin-bottom:12px">Scegli una parola segreta uguale su tutti i tuoi dispositivi. Non è la password di cifratura.</p>
-
-    <!-- Pulsanti cloud -->
-    <button class="bdata" style="color:var(--ac);border-color:rgba(245,158,11,.3)" onclick="pushToCloud()">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
-      Invia al cloud (push)
-    </button>
-    <button class="bdata" style="color:var(--bl);border-color:rgba(59,130,246,.25)" onclick="pullFromCloud()">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
-      Ricevi dal cloud (pull)
-    </button>
-
-    <!-- Separatore file locale -->
-    <div style="border-top:1px solid var(--bo);margin:10px 0 8px"></div>
-    <p style="font-size:10px;color:var(--tx5);margin-bottom:7px">Backup file locale (alternativa al cloud):</p>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
-      <button class="bg2" style="justify-content:center;font-size:12px" onclick="expEncrypted()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        Esporta .casafinance
-      </button>
-      <button class="bg2" style="justify-content:center;font-size:12px" onclick="document.getElementById('fi-enc').click()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><line x1="12" y1="15" x2="12" y2="18"/></svg>
-        Importa .casafinance
-      </button>
-    </div>
-    <input type="file" id="fi-enc" accept=".casafinance" style="display:none" onchange="impEncrypted(this)"/>
     </div>
   </div>
 
@@ -800,6 +750,15 @@ input:disabled{opacity:.5;background:transparent;border-color:transparent}
 </div>
 
 <script>
+/* Preferenze stile — definite PRIME di tutto per evitare errori di riferimento */
+const PKEY = 'cf_style5';
+function gP(){ try{ return JSON.parse(localStorage.getItem(PKEY)||'{}'); }catch(e){ return {}; } }
+function sP(k,v){
+  const p=gP(); p[k]=v; localStorage.setItem(PKEY,JSON.stringify(p));
+  if(ST && !ST.stylePrefs) ST.stylePrefs={};
+  if(ST) ST.stylePrefs[k]=v;
+}
+
 /* ══════════════════════════════════════════
    DATI COSTANTI
 ══════════════════════════════════════════ */
@@ -900,14 +859,9 @@ function save(){
     const s=document.getElementById('hdr-save');
     if(s) s.textContent='💾 '+ts.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' del '+ts.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'});
   }catch(e){}
-  // Auto-push al cloud con debounce 3s (evita push per ogni singola digitazione)
   scheduleCloudPush();
 }
-let _pushTimer=null;
-function scheduleCloudPush(){
-  clearTimeout(_pushTimer);
-  _pushTimer=setTimeout(()=>{ pushToCloud(true); },3000);
-}
+
 function load(){
   try{
     const r=localStorage.getItem('cf5');
@@ -1369,9 +1323,11 @@ function showBudgetAlert(type, title, body, requiresAction){
   actionMsg.style.display = requiresAction ? 'block' : 'none';
   // Colore del pannello
   const panel = document.getElementById('ba-panel');
-  panel.style.borderColor = type==='warn-bad' ? 'var(--re)' : 'var(--or)';
-  panel.style.background  = type==='warn-bad' ? '#450a0a'   : '#431407';
-  document.getElementById('ba-title').style.color = type==='warn-bad' ? 'var(--re)' : 'var(--or)';
+  const isBad = type==='warn-bad';
+  panel.style.background = isBad ? '#fef2f2' : '#fffbeb';
+  panel.style.border     = '2px solid ' + (isBad ? '#dc2626' : '#d97706');
+  document.getElementById('ba-title').style.color = isBad ? '#991b1b' : '#92400e';
+  document.getElementById('ba-body').style.color  = isBad ? '#7f1d1d' : '#78350f';
   // Store whether action required for later check
   document.getElementById('modal-budget-alert').dataset.requiresAction = requiresAction?'1':'0';
   openModal('modal-budget-alert');
@@ -1759,11 +1715,7 @@ function toggleAcc(id){
 function rSet(){
   syncUI();
   buildColorPicker();
-  updEncStatus();
   rAcctList();
-  // Popola chiave sync
-  const sk=document.getElementById('sync-key');
-  if(sk){ const v=getSyncKey(); if(v) sk.value=v; }
   rBalList();
   // CC settings
   // Budget mensile
@@ -2365,767 +2317,318 @@ function resetAll(){
 /* ══════════════════════════════════════════
    PERSONALIZZAZIONE ASPETTO
 ══════════════════════════════════════════ */
+
+
 /* ══════════════════════════════════════════
-   CIFRATURA AES-256-GCM (Web Crypto API)
-   Password → PBKDF2 → chiave AES-256-GCM
-   Nessuna libreria esterna richiesta.
-   Funziona su Chrome, Safari, Firefox, Edge.
+   PREFERENZE STILE (localStorage)
 ══════════════════════════════════════════ */
+/* gP/sP/PKEY spostati in cima */
 
-// La password di cifratura è tenuta SOLO in memoria (mai salvata su disco)
-let _encPwd = null;
 
-/** Ritorna true se la password è impostata in sessione. */
-function hasEncPwd(){ return !!_encPwd; }
+/* ═══════════════════════════════════════════════════════════
+   AUTH + CIFRATURA AES-256-GCM + SYNC SUPABASE
+   
+   Modello end-to-end:
+   - chiave = PBKDF2(password, salt=username, 310k iter, SHA-256)
+   - stessa username+password → stessa chiave, su qualsiasi dispositivo
+   - nessuna chiave salvata da nessuna parte
+   - reset password = perdita dati cifrati (modello E2E standard)
+═══════════════════════════════════════════════════════════ */
 
-/** Deriva una chiave AES-256-GCM dalla password usando PBKDF2 + salt. */
-async function deriveKey(password, salt){
-  const enc = new TextEncoder();
-  const keyMat = await crypto.subtle.importKey(
-    'raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']
-  );
+const SUPA_URL = 'https://cwfcxzvlvhwulhmgpbgu.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN3ZmN4enZsdmh3dWxobWdwYmd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NTcyMDksImV4cCI6MjA5MTMzMzIwOX0.BCQnhfU_230N-DZsdqEzLDGGXOLTQTVX1KlHJzARHXk';
+const AUTH_LS  = 'cf_auth_user'; // salva solo username, mai password
+
+// Stato sessione (solo in memoria)
+let _authUser = null;   // username corrente
+let _cryptoKey = null;  // CryptoKey AES-256-GCM derivata, mai serializzata
+
+// ── Utilità ──────────────────────────────────────────────────
+
+function isLoggedIn(){ return !!_cryptoKey; }
+
+/** Codifica stringa → Uint8Array */
+const enc = new TextEncoder();
+const dec = new TextDecoder();
+
+/** Converte ArrayBuffer → base64 */
+function ab2b64(buf){ return btoa(String.fromCharCode(...new Uint8Array(buf))); }
+/** Converte base64 → ArrayBuffer */
+function b642ab(b64){ return Uint8Array.from(atob(b64), c=>c.charCodeAt(0)).buffer; }
+
+// ── Derivazione chiave PBKDF2 ─────────────────────────────
+
+/**
+ * Deriva una CryptoKey AES-256-GCM da username + password.
+ * Salt = SHA-256(username) → deterministico, nessun salt da conservare.
+ * 310.000 iterazioni PBKDF2 (raccomandazione OWASP 2024).
+ */
+async function deriveKey(username, password){
+  // Salt = hash SHA-256 dello username (pubblico, deterministico)
+  const saltBuf  = await crypto.subtle.digest('SHA-256', enc.encode(username.toLowerCase().trim()));
+  const keyMat   = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
   return crypto.subtle.deriveKey(
-    { name:'PBKDF2', salt, iterations:600000, hash:'SHA-256' },
+    { name:'PBKDF2', salt:saltBuf, iterations:310000, hash:'SHA-256' },
     keyMat,
     { name:'AES-GCM', length:256 },
-    false,
+    false,           // non esportabile
     ['encrypt','decrypt']
   );
 }
 
-/** Cifra una stringa JSON. Ritorna un ArrayBuffer con: [salt(16)|iv(12)|ciphertext]. */
-async function encryptData(jsonStr, password){
-  const enc  = new TextEncoder();
-  const salt = crypto.getRandomValues(new Uint8Array(32));
-  const iv   = crypto.getRandomValues(new Uint8Array(12));
-  const key  = await deriveKey(password, salt);
-  const ct   = await crypto.subtle.encrypt(
-    { name:'AES-GCM', iv },
-    key,
-    enc.encode(jsonStr)
-  );
-  // Assembla: magic(4) + version(1) + salt(16) + iv(12) + ciphertext
-  const magic   = new Uint8Array([0x43,0x46,0x49,0x4E]); // "CFIN"
-  const version = new Uint8Array([0x01]);
-  const result  = new Uint8Array(4+1+16+12+ct.byteLength);
-  let offset = 0;
-  result.set(magic,   offset); offset+=4;
-  result.set(version, offset); offset+=1;
-  result.set(salt,    offset); offset+=16;
-  result.set(iv,      offset); offset+=12;
-  result.set(new Uint8Array(ct), offset);
-  return result.buffer;
+// ── Cifratura / Decifratura ──────────────────────────────
+
+/**
+ * Cifra jsonStr con la chiave di sessione.
+ * Formato output (base64): [iv(12 byte) | ciphertext]
+ */
+async function encrypt(jsonStr){
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, _cryptoKey, enc.encode(jsonStr));
+  const out = new Uint8Array(12 + ct.byteLength);
+  out.set(iv);
+  out.set(new Uint8Array(ct), 12);
+  return ab2b64(out.buffer);
 }
 
-/** Decifra un ArrayBuffer. Ritorna la stringa JSON o null se password sbagliata. */
-async function decryptData(buffer, password){
+/**
+ * Decifra un payload base64. Ritorna la stringa JSON o null se la chiave è sbagliata.
+ */
+async function decrypt(b64, key){
   try{
-    const data    = new Uint8Array(buffer);
-    // Verifica magic bytes
-    if(data[0]!==0x43||data[1]!==0x46||data[2]!==0x49||data[3]!==0x4E)
-      throw new Error('File non valido o non cifrato con CasaFinance');
-    let offset = 5; // skip magic+version
-    const salt = data.slice(offset, offset+16); offset+=16;
-    const iv   = data.slice(offset, offset+12); offset+=12;
-    const ct   = data.slice(offset);
-    const key  = await deriveKey(password, salt);
-    const pt   = await crypto.subtle.decrypt({name:'AES-GCM',iv}, key, ct);
-    return new TextDecoder().decode(pt);
+    const buf = b642ab(b64);
+    const iv  = new Uint8Array(buf, 0, 12);
+    const ct  = new Uint8Array(buf, 12);
+    const k   = key || _cryptoKey;
+    const pt  = await crypto.subtle.decrypt({ name:'AES-GCM', iv }, k, ct);
+    return dec.decode(pt);
   }catch(e){ return null; }
 }
 
-/* ──────────────────────────────────────────
-   UI: Gestione password in sessione
-────────────────────────────────────────── */
-function setEncPassword(){
-  const p1 = document.getElementById('enc-pwd').value;
-  const p2 = document.getElementById('enc-pwd2').value;
-  if(!p1){ notify('Inserisci una password','err'); return; }
-  if(p1.length < 8){ notify('La password deve essere di almeno 8 caratteri','err'); return; }
-  if(p1 !== p2){ notify('Le password non coincidono','err'); return; }
-  _encPwd = p1;
-  document.getElementById('enc-pwd').value  = '';
-  document.getElementById('enc-pwd2').value = '';
-  updEncStatus();
-  notify('🔐 Password impostata — sessione protetta ✓');
+// ── UI Auth ───────────────────────────────────────────────
+
+let _authTab = 'login'; // 'login' | 'register'
+
+function showLoginModal(){
+  document.getElementById('modal-login').style.display='flex';
+  document.getElementById('login-user').value = localStorage.getItem(AUTH_LS)||'';
+  document.getElementById('login-pwd').value  = '';
+  document.getElementById('login-pwd2') && (document.getElementById('login-pwd2').value='');
+  hideAuthErr();
+  switchAuthTab(_authTab);
+  setTimeout(()=>{
+    const u = document.getElementById('login-user');
+    (u.value ? document.getElementById('login-pwd') : u).focus();
+  }, 150);
 }
 
-function clearEncPassword(){
-  _encPwd = null;
-  document.getElementById('enc-pwd').value  = '';
-  document.getElementById('enc-pwd2').value = '';
-  updEncStatus();
-  notify('Password rimossa dalla sessione','warn');
+function hideLoginModal(){ document.getElementById('modal-login').style.display='none'; }
+
+function switchAuthTab(tab){
+  _authTab = tab;
+  const isReg = tab==='register';
+  document.getElementById('tab-login').style.background    = isReg?'transparent':'var(--ac)';
+  document.getElementById('tab-login').style.color         = isReg?'var(--tx3)':'#0f172a';
+  document.getElementById('tab-register').style.background = isReg?'var(--ac)':'transparent';
+  document.getElementById('tab-register').style.color      = isReg?'#0f172a':'var(--tx3)';
+  document.getElementById('login-pwd2-wrap').style.display = isReg?'block':'none';
+  document.getElementById('auth-btn-label').textContent    = isReg?'Crea account':'Accedi';
 }
 
-function updEncStatus(){
-  const icon = document.getElementById('enc-status-icon');
-  const txt  = document.getElementById('enc-status-txt');
-  const sub  = document.getElementById('enc-status-sub');
-  if(!icon) return;
-  const hasPwd = hasEncPwd();
-  const hasSK  = !!getSyncKey();
-  const ready  = hasPwd && hasSK;
-  if(ready){
-    icon.textContent = '🔐';
-    txt.textContent  = 'Sync cloud attivo — cifrato AES-256';
-    txt.style.color  = 'var(--gr)';
-    sub.textContent  = 'Auto-push ad ogni salvataggio · Pull automatico ogni 5 min.';
-  } else if(hasPwd && !hasSK){
-    icon.textContent = '🔑';
-    txt.textContent  = 'Password OK — manca la chiave sync';
-    txt.style.color  = 'var(--or)';
-    sub.textContent  = 'Inserisci la stessa chiave sync su tutti i dispositivi.';
-  } else if(!hasPwd && hasSK){
-    icon.textContent = '🔓';
-    txt.textContent  = 'Chiave sync OK — manca la password';
-    txt.style.color  = 'var(--or)';
-    sub.textContent  = 'Imposta la password di cifratura per abilitare il sync.';
+function showAuthErr(msg){
+  const el=document.getElementById('auth-err');
+  el.textContent=msg; el.style.display='block';
+}
+function hideAuthErr(){ document.getElementById('auth-err').style.display='none'; }
+
+/** Pulsante Accedi / Crea account */
+async function authSubmit(){
+  const user = document.getElementById('login-user').value.trim().toLowerCase();
+  const pwd  = document.getElementById('login-pwd').value;
+  hideAuthErr();
+
+  if(!user){ showAuthErr('Inserisci il nome utente.'); return; }
+  if(pwd.length < 8){ showAuthErr('La password deve essere di almeno 8 caratteri.'); return; }
+
+  if(_authTab==='register'){
+    const pwd2 = document.getElementById('login-pwd2').value;
+    if(pwd !== pwd2){ showAuthErr('Le password non coincidono.'); return; }
+    await authRegister(user, pwd);
   } else {
-    icon.textContent = '🔓';
-    txt.textContent  = 'Sync cloud non configurato';
-    txt.style.color  = 'var(--tx2)';
-    sub.textContent  = 'Imposta password e chiave sync per abilitare il cloud.';
+    await authLogin(user, pwd);
   }
 }
 
-/* ──────────────────────────────────────────
-   ESPORTA file cifrato .casafinance
-────────────────────────────────────────── */
-async function expEncrypted(){
-  if(!hasEncPwd()){
-    notify('Imposta prima una password di cifratura','err'); return;
-  }
+/** Registrazione: crea account, cifra i dati locali attuali, li invia al cloud */
+async function authRegister(user, pwd){
+  document.getElementById('auth-btn-label').textContent = '⏳ Creazione account…';
   try{
-    ST.stylePrefs = gP();
-    const json    = JSON.stringify({...ST, _export:TODAY, _version:2});
-    const buf     = await encryptData(json, _encPwd);
-    const blob    = new Blob([buf], {type:'application/octet-stream'});
-    const a       = document.createElement('a');
-    a.href        = URL.createObjectURL(blob);
-    a.download    = 'CasaFinance_'+TODAY+'.casafinance';
-    a.click();
-    notify('🔐 File cifrato esportato ✓ — salvalo su iCloud/Drive/OneDrive');
+    const key = await deriveKey(user, pwd);
+    // Verifica che l'utente non esista già
+    const existing = await _supaGet(user);
+    if(existing){ showAuthErr('Nome utente già registrato. Prova ad accedere.'); return; }
+    // Sessione
+    _cryptoKey = key; _authUser = user;
+    localStorage.setItem(AUTH_LS, user);
+    // Primo push
+    await pushToCloud(true);
+    hideLoginModal();
+    updSyncUI();
+    notify('🔐 Account creato — benvenuto, '+user+'!');
   }catch(e){
-    notify('Errore durante la cifratura: '+e.message,'err');
+    showAuthErr('Errore durante la registrazione. Riprova.');
+    console.error(e);
+  }finally{
+    document.getElementById('auth-btn-label').textContent = 'Crea account';
   }
 }
 
-/* ──────────────────────────────────────────
-   IMPORTA file cifrato .casafinance
-────────────────────────────────────────── */
-let _pendingEncFile = null;
-
-function impEncrypted(input){
-  const f = input.files[0];
-  if(!f){ return; }
-  _pendingEncFile = f;
-  input.value = '';
-  if(hasEncPwd()){
-    // Prova subito con la password in sessione
-    _doDecryptImport(_encPwd);
-  } else {
-    // Chiedi la password via modale
-    document.getElementById('imp-enc-pwd').value = '';
-    document.getElementById('imp-enc-err').style.display = 'none';
-    openModal('modal-pwd-import');
-    setTimeout(()=>document.getElementById('imp-enc-pwd').focus(), 200);
-  }
-}
-
-async function confirmImpEncrypted(){
-  const pwd = document.getElementById('imp-enc-pwd').value;
-  if(!pwd){ notify('Inserisci la password','err'); return; }
-  const ok = await _doDecryptImport(pwd);
-  if(ok) closeModal('modal-pwd-import');
-}
-
-async function _doDecryptImport(password){
-  if(!_pendingEncFile){ notify('Nessun file selezionato','err'); return false; }
+/** Login: deriva chiave, prova a decifrare il record cloud */
+async function authLogin(user, pwd){
+  document.getElementById('auth-btn-label').textContent = '⏳ Accesso…';
   try{
-    const buf     = await _pendingEncFile.arrayBuffer();
-    const jsonStr = await decryptData(buf, password);
-    if(!jsonStr){
-      document.getElementById('imp-enc-err').style.display = 'block';
-      notify('Password errata o file non valido','err');
-      return false;
-    }
-    const data = JSON.parse(jsonStr);
-    // Applica i dati
-    ST = Object.assign({}, ST, data);
-    if(!ST.ccSettings) ST.ccSettings={cycleStartDay:2,paymentDays:45,paymentAccount:'contoCondiviso',plafond:0};
-    if(!ST.monthlyBudget) ST.monthlyBudget=2100;
-    if(!ST.incomeSources||!ST.incomeSources.length) ST.incomeSources=[...DEFAULT_INC_SOURCES];
-    save();
-    // Ripristina preferenze stile se presenti
-    if(ST.stylePrefs){
-      try{ localStorage.setItem(PKEY, JSON.stringify(ST.stylePrefs)); }catch(e){}
-      loadPrefs();
-    }
-    _pendingEncFile = null;
-    // Offri di salvare la password in sessione se non era già impostata
-    if(!hasEncPwd() && password){ _encPwd = password; updEncStatus(); }
-    notify('🔐 Dati importati e decifrati con successo ✓ — '+( ST.transactions.length)+' movimenti caricati');
-    rDash(); if(curV==='impostazioni') rSet();
-    return true;
-  }catch(e){
-    notify('Errore durante la decifratura: '+e.message,'err');
-    return false;
-  }
-}
+    const key = await deriveKey(user, pwd);
+    const row = await _supaGet(user);
 
-/* ══════════════════════════════════════════ */
-/* ══════════════════════════════════════════
-   SUPABASE SYNC ENGINE
-   I dati vengono cifrati AES-256 PRIMA di
-   lasciare il dispositivo. Supabase vede
-   solo testo cifrato illeggibile.
-══════════════════════════════════════════ */
-/* ════════════════════════════════════════════
-   AUTENTICAZIONE SUPABASE
-════════════════════════════════════════════ */
-let _supaSession = null;
-
-// Carica sessione salvata all'avvio
-(function loadSession(){
-  try {
-    const saved = localStorage.getItem('cf_supa_session');
-    if(saved) _supaSession = JSON.parse(saved);
-  } catch(e) {}
-})();
-
-function getAuthHeaders(){
-  const token = _supaSession?.access_token;
-  if(!token) return { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` };
-  return { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${token}` };
-}
-
-function updateAuthUI(){
-  const email     = _supaSession?.user?.email;
-  const loggedIn  = document.getElementById('auth-logged-in');
-  const loggedOut = document.getElementById('auth-logged-out');
-  const emailEl   = document.getElementById('auth-user-email');
-  if(!loggedIn || !loggedOut) return;
-  if(email){
-    loggedIn.style.display  = '';
-    loggedOut.style.display = 'none';
-    if(emailEl) emailEl.textContent = '✓ ' + email;
-  } else {
-    loggedIn.style.display  = 'none';
-    loggedOut.style.display = '';
-  }
-}
-
-async function supaLogin(){
-  const email = document.getElementById('auth-email')?.value.trim();
-  const pwd   = document.getElementById('auth-password')?.value;
-  if(!email||!pwd){ notify('Inserisci email e password','err'); return; }
-  try{
-    const res = await fetch(`${SUPA_URL}/auth/v1/token?grant_type=password`,{
-      method:'POST',
-      headers:{'apikey':SUPA_KEY,'Content-Type':'application/json'},
-      body: JSON.stringify({email,password:pwd})
-    });
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.error_description||data.msg||'Login fallito');
-    _supaSession = data;
-    localStorage.setItem('cf_supa_session', JSON.stringify(data));
-    updateAuthUI();
-    notify('✓ Accesso effettuato come '+email);
-  } catch(e){ notify('Errore login: '+e.message,'err'); }
-}
-
-async function supaRegister(){
-  const email = document.getElementById('auth-email')?.value.trim();
-  const pwd   = document.getElementById('auth-password')?.value;
-  if(!email||!pwd){ notify('Inserisci email e password','err'); return; }
-  if(pwd.length<8){ notify('Password minimo 8 caratteri','err'); return; }
-  try{
-    const res = await fetch(`${SUPA_URL}/auth/v1/signup`,{
-      method:'POST',
-      headers:{'apikey':SUPA_KEY,'Content-Type':'application/json'},
-      body: JSON.stringify({email,password:pwd})
-    });
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.error_description||data.msg||'Registrazione fallita');
-    _supaSession = data;
-    if(data.access_token) localStorage.setItem('cf_supa_session', JSON.stringify(data));
-    updateAuthUI();
-    notify('✓ Account creato! Ora puoi usare il cloud sync.');
-  } catch(e){ notify('Errore registrazione: '+e.message,'err'); }
-}
-
-async function supaLogout(){
-  try{
-    if(_supaSession?.access_token){
-      await fetch(`${SUPA_URL}/auth/v1/logout`,{
-        method:'POST',
-        headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${_supaSession.access_token}`}
-      });
-    }
-  } catch(e){}
-  _supaSession = null;
-  localStorage.removeItem('cf_supa_session');
-  updateAuthUI();
-  notify('Disconnesso dal cloud');
-}
-
-const SUPA_URL = 'https://cwfcxzvlvhwulhmgpbgu.supabase.co';
-const SUPA_KEY = 'sb_publishable_80iNTcdIcDqsdw4UQnZKYg_G_sJ1SVj';
-const SYNC_KEY_LS = 'cf_sync_key'; // chiave localStorage per la sync-key
-
-function getSyncKey(){ return sessionStorage.getItem(SYNC_KEY_LS)||''; }
-function saveSyncKey(){
-  const v = document.getElementById('sync-key')?.value.trim();
-  if(!v){ notify('Inserisci una chiave sync','err'); return; }
-  sessionStorage.setItem(SYNC_KEY_LS, v);
-  updEncStatus();
-  notify('Chiave sync salvata ✓ — uguale su tutti i tuoi dispositivi');
-}
-
-/** Aggiorna l'indicatore di stato sync nell'header */
-function setSyncStatus(icon, msg, color){
-  const el = document.getElementById('sync-live-status');
-  if(el) el.innerHTML = `<span style="color:${color}">${icon} ${msg}</span>`;
-}
-
-/* ──────────────────────────────────────────
-   PUSH — invia dati al cloud
-   silent=true: nessuna notifica (autosave)
-────────────────────────────────────────── */
-async function pushToCloud(silent=false){
-  const syncKey = getSyncKey();
-  if(!syncKey){ if(!silent) notify('Imposta prima una chiave sync','err'); return; }
-  if(!hasEncPwd()){ if(!silent) notify('Imposta prima la password di cifratura','err'); return; }
-
-  setSyncStatus('⏳','invio...','var(--tx4)');
-  try{
-    // 1. Cifra i dati
-    ST.stylePrefs = gP();
-    const json   = JSON.stringify({...ST, _push: new Date().toISOString()});
-    const buf    = await encryptData(json, _encPwd);
-    // 2. Converti in base64 per il trasporto
-    const b64    = btoa(String.fromCharCode(...new Uint8Array(buf)));
-    // 3. Upsert su Supabase (inserisce o aggiorna la riga con quel sync_key)
-    if(!_supaSession?.access_token){ if(!silent) notify('Accedi prima al cloud nelle impostazioni','err'); setSyncStatus('','',''); return; }
-    const res = await fetch(`${SUPA_URL}/rest/v1/sync_data`, {
-      method: 'POST',
-      headers: {
-        'Content-Type':  'application/json',
-        ...getAuthHeaders(),
-        'Prefer':        'resolution=merge-duplicates,return=minimal',
-      },
-      body: JSON.stringify({ device_id: syncKey, payload: b64, updated_at: new Date().toISOString(), user_id: _supaSession.user.id })
-    });
-    if(!res.ok){ throw new Error('HTTP '+res.status); }
-    const ts = new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
-    setSyncStatus('☁️', ts, 'var(--gr)');
-    if(!silent) notify('☁️ Dati inviati al cloud ✓ — '+ts);
-  }catch(e){
-    setSyncStatus('⚠','errore','var(--re)');
-    if(!silent) notify('Errore push: '+e.message,'err');
-    console.error('Push error:',e);
-  }
-}
-
-/* ──────────────────────────────────────────
-   PULL — ricevi dati dal cloud
-────────────────────────────────────────── */
-async function pullFromCloud(){
-  const syncKey = getSyncKey();
-  if(!syncKey){ notify('Imposta prima una chiave sync','err'); return; }
-  if(!hasEncPwd()){ notify('Imposta prima la password di cifratura','err'); return; }
-
-  setSyncStatus('⏳','ricezione...','var(--tx4)');
-  try{
-    // 1. Leggi da Supabase
-    const res = await fetch(
-      `${SUPA_URL}/rest/v1/sync_data?device_id=eq.${encodeURIComponent(syncKey)}&order=updated_at.desc&limit=1`,
-      { headers: { 'Content-Type': 'application/json', ...getAuthHeaders() } }
-    );
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const rows = await res.json();
-    if(!rows||!rows.length){ notify('Nessun dato trovato sul cloud per questa chiave sync','warn'); setSyncStatus('','',''); return; }
-
-    // 2. Decifra
-    const b64   = rows[0].payload;
-    const buf   = Uint8Array.from(atob(b64), ch=>ch.charCodeAt(0)).buffer;
-    const json  = await decryptData(buf, _encPwd);
-    if(!json){ notify('Password errata — impossibile decifrare i dati cloud','err'); setSyncStatus('⚠','pwd errata','var(--re)'); return; }
-
-    // 3. Applica i dati
-    const data = JSON.parse(json);
-    const remoteTime = new Date(rows[0].updated_at);
-    // Confronta con i dati locali — prende il più recente
-    const localTime  = ST._push ? new Date(ST._push) : new Date(0);
-    if(remoteTime <= localTime){
-      notify('I dati locali sono già aggiornati ('+remoteTime.toLocaleTimeString('it-IT')+')','warn');
-      setSyncStatus('✓','aggiornato','var(--gr)');
+    if(!row){
+      // Nessun dato cloud: primo accesso da questo browser → accetta e registra
+      _cryptoKey = key; _authUser = user;
+      localStorage.setItem(AUTH_LS, user);
+      await pushToCloud(true);
+      hideLoginModal();
+      updSyncUI();
+      notify('🔐 Account configurato su questo dispositivo ✓');
       return;
     }
-    ST = Object.assign({}, ST, data);
-    if(!ST.monthlyBudget) ST.monthlyBudget=2100;
-    if(!ST.ccSettings) ST.ccSettings={cycleStartDay:2,paymentDays:45,paymentAccount:'contoCondiviso',plafond:0};
-    if(!ST.ccSettings.cycleOverrides) ST.ccSettings.cycleOverrides={};
-    if(!ST.incomeSources||!ST.incomeSources.length) ST.incomeSources=[...DEFAULT_INC_SOURCES];
-    save();
-    if(ST.stylePrefs){
-      try{ localStorage.setItem(PKEY, JSON.stringify(ST.stylePrefs)); }catch(e){}
-      loadPrefs();
+
+    // Prova a decifrare: se fallisce la password è sbagliata
+    const json = await decrypt(row.payload, key);
+    if(!json){ showAuthErr('Password errata — impossibile decifrare i dati.'); return; }
+
+    // Password corretta → carica dati
+    _cryptoKey = key; _authUser = user;
+    localStorage.setItem(AUTH_LS, user);
+    const data = JSON.parse(json);
+    const remoteTs = new Date(row.updated_at);
+    const localTs  = ST._push ? new Date(ST._push) : new Date(0);
+    if(remoteTs > localTs){
+      ST = Object.assign({}, ST, data);
+      if(!ST.ccSettings)   ST.ccSettings={cycleStartDay:2,paymentDays:45,paymentAccount:'contoCondiviso',plafond:0};
+      if(!ST.monthlyBudget) ST.monthlyBudget=2100;
+      if(!ST.accounts||!ST.accounts.length) ST.accounts=JSON.parse(JSON.stringify(ACCTS));
+      if(!ST.incomeSources||!ST.incomeSources.length) ST.incomeSources=[...DEFAULT_INC_SOURCES];
+      save();
+      if(ST.stylePrefs) try{ localStorage.setItem(PKEY,JSON.stringify(ST.stylePrefs)); loadPrefs(); }catch(e){}
     }
-    const ts = remoteTime.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
-    setSyncStatus('☁️',ts,'var(--gr)');
-    notify('☁️ Dati ricevuti dal cloud ✓ — '+ST.transactions.length+' movimenti ('+ts+')');
+    hideLoginModal();
+    updSyncUI();
     rDash(); if(curV!=='dashboard') go(curV);
+    notify('🔐 Accesso eseguito — bentornato, '+user+'!');
   }catch(e){
-    setSyncStatus('⚠','errore','var(--re)');
-    notify('Errore pull: '+e.message,'err');
-    console.error('Pull error:',e);
+    showAuthErr('Errore di rete. Controlla la connessione e riprova.');
+    console.error(e);
+  }finally{
+    document.getElementById('auth-btn-label').textContent = 'Accedi';
   }
 }
 
-/* ──────────────────────────────────────────
-   AUTO-PULL: all'apertura dell'app e al
-   ritorno in foreground, scarica eventuali
-   aggiornamenti dal cloud
-────────────────────────────────────────── */
-async function autoPullOnFocus(){
-  if(getSyncKey() && hasEncPwd()){
-    await pullFromCloud();
-  }
-}
-// Pull silenzioso al ritorno in primo piano
-document.addEventListener('visibilitychange', ()=>{
-  if(document.visibilityState==='visible') autoPullOnFocus();
-});
-// Pull automatico ogni 5 minuti se la pagina è attiva
-setInterval(()=>{
-  if(document.visibilityState==='visible') autoPullOnFocus();
-}, 5*60*1000);
-
-/* ══════════════════════════════════════════ */
-const PKEY='cf_style5';
-function gP(){try{return JSON.parse(localStorage.getItem(PKEY)||'{}');}catch(e){return {};}}
-function sP(k,v){
-  const p=gP(); p[k]=v; localStorage.setItem(PKEY,JSON.stringify(p));
-  // Aggiorna anche ST.stylePrefs per sincronizzare con il DB
-  if(!ST.stylePrefs) ST.stylePrefs={};
-  ST.stylePrefs[k]=v;
+/** Modalità locale: salta il login */
+function authSkip(){
+  hideLoginModal();
+  notify('Modalità locale — nessun sync cloud attivo','warn');
 }
 
-/* ══════════════════════════════════════════
-   PALETTE PREDEFINITE
-   Ogni palette: { id, name, emoji, dark, light }
-   dark/light: { bg, surface, accent, text }
-══════════════════════════════════════════ */
-/* ══════════════════════════════════════════
-   SISTEMA COLORI — proposte separate per
-   ogni elemento, contrasto garantito WCAG AA
-══════════════════════════════════════════ */
-
-/** Calcola la luminanza relativa di un colore hex (WCAG 2.1) */
-function luminance(hex){
-  hex=hex.replace('#','');
-  if(hex.length===3) hex=hex.split('').map(x=>x+x).join('');
-  const r=parseInt(hex.slice(0,2),16)/255;
-  const g=parseInt(hex.slice(2,4),16)/255;
-  const b=parseInt(hex.slice(4,6),16)/255;
-  const lin=v=>v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);
-  return 0.2126*lin(r)+0.7152*lin(g)+0.0722*lin(b);
+/** Logout: pulisce la sessione dalla memoria */
+function authLogout(){
+  if(!confirm('Esci dall\'account? I dati locali restano sul dispositivo.')) return;
+  _cryptoKey=null; _authUser=null;
+  updSyncUI();
+  notify('Sessione terminata','warn');
 }
 
-/** Rapporto di contrasto tra due colori (WCAG: >= 4.5 = AA, >= 7 = AAA) */
-function contrastRatio(hex1,hex2){
-  const l1=luminance(hex1), l2=luminance(hex2);
-  const lighter=Math.max(l1,l2), darker=Math.min(l1,l2);
-  return (lighter+0.05)/(darker+0.05);
+/** Aggiorna la UI del pannello sync nelle impostazioni */
+function updSyncUI(){
+  const loggedIn  = isLoggedIn();
+  const outPanel  = document.getElementById('sync-logged-out');
+  const inPanel   = document.getElementById('sync-logged-in');
+  if(outPanel) outPanel.style.display = loggedIn?'none':'block';
+  if(inPanel)  inPanel.style.display  = loggedIn?'block':'none';
+  const lbl = document.getElementById('sync-user-label');
+  if(lbl && _authUser) lbl.textContent = '✓ Connesso come '+_authUser;
 }
 
-/** Sceglie automaticamente il colore testo più leggibile su uno sfondo */
-function bestTextOn(bgHex){
-  const onWhite=contrastRatio(bgHex,'#ffffff');
-  const onBlack=contrastRatio(bgHex,'#0a0a0a');
-  return onBlack>=onWhite ? '#0a0a0a' : '#f5f5f5';
-}
+// ── Supabase helpers ─────────────────────────────────────
 
-// ── Proposte per ciascun elemento ──────────────────────────────
-
-const COLOR_PROPOSALS = {
-  accent: [
-    {name:'Ambra',    hex:'#c8924a'},
-    {name:'Terracotta',hex:'#c0705a'},
-    {name:'Salvia',   hex:'#6a9e78'},
-    {name:'Aciaio',   hex:'#5b8fb8'},
-    {name:'Lavanda',  hex:'#8878b8'},
-    {name:'Teal',     hex:'#4a9e9e'},
-    {name:'Oro',      hex:'#b8962a'},
-    {name:'Corallo',  hex:'#c06868'},
-    {name:'Cipria',   hex:'#a87860'},
-    {name:'Menta',    hex:'#5aaa88'},
-  ],
-  bg: [
-    // Scuri
-    {name:'Notte',    hex:'#12100e', dark:true},
-    {name:'Ardesia',  hex:'#141618', dark:true},
-    {name:'NavyNotte',hex:'#0d1520', dark:true},
-    {name:'ForestaN.', hex:'#0d1510', dark:true},
-    {name:'ViolaNotte',hex:'#131018', dark:true},
-    // Chiari
-    {name:'Avorio',   hex:'#f5f0e8', dark:false},
-    {name:'Nebbia',   hex:'#eaecef', dark:false},
-    {name:'Salvia Ch.',hex:'#e8eeea', dark:false},
-    {name:'CieloTenue',hex:'#e8eef5', dark:false},
-    {name:'Pesca',    hex:'#f0ebe5', dark:false},
-  ],
-  surface: [
-    // Scuri (abbinare a bg scuri)
-    {name:'CarboneChiaro', hex:'#1e1c18', dark:true},
-    {name:'ArdesiaChiara', hex:'#22262a', dark:true},
-    {name:'NavyChiaro',    hex:'#162030', dark:true},
-    {name:'ForestaChiara', hex:'#162018', dark:true},
-    {name:'ViolaChiara',   hex:'#1e1828', dark:true},
-    // Chiari (abbinare a bg chiari)
-    {name:'Crema',         hex:'#fdf8f0', dark:false},
-    {name:'Bianco Freddo', hex:'#f8fafb', dark:false},
-    {name:'BiancoSalvia',  hex:'#f4f8f4', dark:false},
-    {name:'BiancoAzz.',    hex:'#f4f8fc', dark:false},
-    {name:'BiancoRosa',    hex:'#fdf6f4', dark:false},
-  ],
-  text: [
-    // Chiari (per sfondi scuri)
-    {name:'Bianco Puro',   hex:'#f8f8f8', dark:true},
-    {name:'Bianco Caldo',  hex:'#f2ece4', dark:true},
-    {name:'Bianco Freddo', hex:'#e8eef5', dark:true},
-    {name:'Argento',       hex:'#d8dce2', dark:true},
-    {name:'Crema',         hex:'#f0e8d8', dark:true},
-    // Scuri (per sfondi chiari)
-    {name:'Inchiostro',    hex:'#18181a', dark:false},
-    {name:'Carbone',       hex:'#28201a', dark:false},
-    {name:'Marina',        hex:'#182030', dark:false},
-    {name:'Foresta',       hex:'#182018', dark:false},
-    {name:'Prugna',        hex:'#221830', dark:false},
-  ],
+const _supaHeaders = {
+  'Content-Type': 'application/json',
+  'apikey':        SUPA_KEY,
+  'Authorization': 'Bearer '+SUPA_KEY,
 };
 
-// Stato corrente selezioni (per anteprima)
-const _curSel = { accent:null, bg:null, surface:null, text:null };
-
-function buildColorPicker(){
-  const isDark = document.documentElement.getAttribute('data-theme')==='dark';
-
-  ['accent','bg','surface','text'].forEach(key=>{
-    const container=document.getElementById(key==='accent'?'ac-chips':key==='bg'?'bg-chips':key==='surface'?'su-chips':'tx-chips');
-    if(!container) return;
-
-    // Filtra proposte pertinenti al tema (per bg/surface/text)
-    let proposals = COLOR_PROPOSALS[key];
-    if(key==='bg'||key==='surface'||key==='text'){
-      proposals = proposals.filter(p=>isDark ? p.dark : !p.dark);
-    }
-
-    container.innerHTML = proposals.map(p=>{
-      // Determina il colore del testo sulla chip
-      const chipText = bestTextOn(p.hex);
-      // Colore di sfondo per mostrare il chip del testo
-      const chipBg = key==='text' ? (isDark?'#1a1a1a':'#f0f0f0') : p.hex;
-      return `<button onclick="selectColor('${key}','${p.hex}','${p.name}')"
-        title="${p.name}: ${p.hex}"
-        style="width:56px;height:48px;border-radius:10px;border:2px solid transparent;
-          background:${chipBg};cursor:pointer;
-          display:flex;flex-direction:column;align-items:center;justify-content:center;
-          gap:2px;transition:all .15s;outline:none;padding:2px"
-        id="chip-${key}-${p.hex.replace('#','')}">
-        ${key==='text'
-          ? `<div style="width:28px;height:4px;border-radius:2px;background:${p.hex}"></div>
-             <div style="width:22px;height:3px;border-radius:2px;background:${p.hex};opacity:.5"></div>`
-          : ``}
-        <span style="font-size:9px;font-weight:600;color:${key==='text'?(isDark?'#aaa':'#555'):chipText};
-          line-height:1.2;text-align:center;word-break:break-word;max-width:52px">${p.name}</span>
-      </button>`;
-    }).join('');
-  });
-
-  updateColorPreview();
+async function _supaGet(username){
+  try{
+    const r = await fetch(
+      `${SUPA_URL}/rest/v1/sync_data?device_id=eq.${encodeURIComponent(username)}&limit=1`,
+      { headers: _supaHeaders }
+    );
+    if(!r.ok) return null;
+    const rows = await r.json();
+    return rows && rows.length ? rows[0] : null;
+  }catch(e){ return null; }
 }
 
-function selectColor(key, hex, name){
-  _curSel[key]={hex,name};
+// ── Push / Pull ───────────────────────────────────────────
 
-  // Applica immediatamente
-  applyColor(key==='accent'?'accent':key==='bg'?'bg':key==='surface'?'surface':'text', hex);
+let _pushTimer = null;
+function scheduleCloudPush(){
+  if(!isLoggedIn()) return;
+  clearTimeout(_pushTimer);
+  _pushTimer = setTimeout(()=>pushToCloud(true), 3000);
+}
 
-  // Evidenzia chip selezionata
-  const prefix = key==='accent'?'ac':key==='bg'?'bg':key==='surface'?'su':'tx';
-  document.querySelectorAll(`[id^="chip-${key}-"]`).forEach(el=>{
-    el.style.borderColor='transparent';
-    el.style.transform='scale(1)';
-    el.style.boxShadow='none';
-  });
-  const chip=document.getElementById(`chip-${key}-${hex.replace('#','')}`);
-  if(chip){
-    chip.style.borderColor='var(--ac)';
-    chip.style.transform='scale(1.1)';
-    chip.style.boxShadow='0 0 0 2px var(--ac2)';
+async function pushToCloud(silent=false){
+  if(!isLoggedIn()){ if(!silent) notify('Effettua il login per sincronizzare','warn'); return; }
+  try{
+    ST.stylePrefs = gP();
+    const payload = await encrypt(JSON.stringify({...ST, _push: new Date().toISOString()}));
+    const r = await fetch(`${SUPA_URL}/rest/v1/sync_data`, {
+      method:  'POST',
+      headers: { ..._supaHeaders, 'Prefer':'resolution=merge-duplicates,return=minimal' },
+      body:    JSON.stringify({ device_id:_authUser, payload, updated_at:new Date().toISOString() })
+    });
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const ts = new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+    const sl = document.getElementById('sync-status-line');
+    if(sl) sl.textContent = 'Ultimo sync: '+ts;
+    if(!silent) notify('☁️ Dati inviati al cloud ✓ ('+ts+')');
+  }catch(e){
+    if(!silent) notify('Errore push: '+e.message,'err');
+    console.error('push error',e);
   }
-
-  // Aggiorna nome corrente
-  const swEl=document.getElementById(`${prefix}-cur-swatch`);
-  const nmEl=document.getElementById(`${prefix}-cur-name`);
-  if(swEl) swEl.style.background=hex;
-  if(nmEl) nmEl.textContent=name;
-
-  updateColorPreview();
 }
 
-function updateColorPreview(){
-  const cs=getComputedStyle(document.documentElement);
-  const bg = _curSel.surface?.hex || cs.getPropertyValue('--su').trim() || '#1e293b';
-  const tx = _curSel.text?.hex    || cs.getPropertyValue('--tx').trim() || '#f8fafc';
-  const ac = _curSel.accent?.hex  || cs.getPropertyValue('--ac').trim() || '#f59e0b';
-
-  const card=document.getElementById('preview-card');
-  const title=document.getElementById('preview-title');
-  const desc=document.getElementById('preview-desc');
-  const btn=document.getElementById('preview-accent-btn');
-  const info=document.getElementById('contrast-info');
-  if(!card) return;
-
-  card.style.background=bg;
-  if(title){ title.style.color=tx; }
-  if(desc){ desc.style.color=tx+'aa'; }
-  if(btn){
-    btn.style.background=ac;
-    btn.style.color=bestTextOn(ac);
-  }
-
-  // Calcola e mostra rapporti di contrasto
-  const cr = contrastRatio(tx, bg).toFixed(1);
-  const crAc = contrastRatio(ac, bg).toFixed(1);
-  const levelTx = cr>=7?'AAA ✓':cr>=4.5?'AA ✓':cr>=3?'AA Large ⚠':'⚠ Basso';
-  const levelAc = crAc>=4.5?'AA ✓':crAc>=3?'AA Large ⚠':'⚠ Basso';
-  if(info) info.innerHTML=
-    `Contrasto testo/card: <strong style="color:${cr>=4.5?'var(--gr)':'var(--re)'}">${cr}:1 ${levelTx}</strong>` +
-    `&nbsp;&nbsp;|&nbsp;&nbsp;Accento/card: <strong style="color:${crAc>=4.5?'var(--gr)':'var(--or)'}">${crAc}:1 ${levelAc}</strong>`;
+async function pullFromCloud(){
+  if(!isLoggedIn()){ notify('Effettua il login per sincronizzare','warn'); return; }
+  try{
+    const row = await _supaGet(_authUser);
+    if(!row){ notify('Nessun dato cloud per questo account','warn'); return; }
+    const json = await decrypt(row.payload);
+    if(!json){ notify('Impossibile decifrare — password errata?','err'); return; }
+    const data = JSON.parse(json);
+    const remoteTs = new Date(row.updated_at);
+    const localTs  = ST._push ? new Date(ST._push) : new Date(0);
+    if(remoteTs <= localTs){ notify('Dati già aggiornati'); return; }
+    ST = Object.assign({}, ST, data);
+    save(); rDash(); if(curV!=='dashboard') go(curV);
+    const ts = remoteTs.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+    notify('☁️ Dati ricevuti dal cloud ✓ ('+ts+')');
+  }catch(e){ notify('Errore pull: '+e.message,'err'); }
 }
 
-// Legacy palette grid — non più usato ma mantenuto per compatibilità loadPrefs
-function buildPaletteGrid(){ buildColorPicker(); }
-
-function applyPalette(id){
-  // Mantenuto per compatibilità con loadPrefs esistente — non fa nulla di visibile
-  buildColorPicker();
-}
-
-function setTh(m){
-  thMode=m;
-  const dk=(m==='dark')||(m==='auto'&&window.matchMedia('(prefers-color-scheme: dark)').matches);
-  document.documentElement.setAttribute('data-theme',dk?'dark':'light');
-  sP('theme',m);
-  ['auto','light','dark'].forEach(x=>document.getElementById('tb-'+x)?.classList.toggle('active',thMode===x));
-  buildColorPicker();
-}
-
-function shiftHex(hex,amount){
-  hex=hex.replace('#','');if(hex.length===3)hex=hex.split('').map(c=>c+c).join('');
-  let r=parseInt(hex.slice(0,2),16),g=parseInt(hex.slice(2,4),16),b=parseInt(hex.slice(4,6),16);
-  const lum=(r*.299+g*.587+b*.114)/255,delta=lum>.5?-amount:amount;
-  return '#'+[r,g,b].map(v=>Math.max(0,Math.min(255,v+delta)).toString(16).padStart(2,'0')).join('');
-}
-
-function applyColor(key,hex){
-  sP('c_'+key,hex);
-  const R=document.documentElement;
-  if(key==='accent'){
-    R.style.setProperty('--ac',hex);
-    R.style.setProperty('--ac2',hex+'2e');
-  }
-  if(key==='bg'){
-    R.style.setProperty('--bg',hex);
-    R.style.setProperty('--su', shiftHex(hex,14));
-    R.style.setProperty('--su2',shiftHex(hex,28));
-    R.style.setProperty('--bo', shiftHex(hex,20));
-    R.style.setProperty('--bo2',shiftHex(hex,38));
-    // Forza testo sempre leggibile sullo sfondo scelto
-    const autoTx=bestTextOn(hex);
-    R.style.setProperty('--tx', autoTx);
-    R.style.setProperty('--tx2',autoTx+'ee');
-    R.style.setProperty('--tx3',autoTx+'99');
-    R.style.setProperty('--tx4',autoTx+'66');
-    R.style.setProperty('--tx5',autoTx+'44');
-  }
-  if(key==='surface'){
-    R.style.setProperty('--su', hex);
-    R.style.setProperty('--su2',shiftHex(hex,12));
-    R.style.setProperty('--bo', shiftHex(hex,22));
-    R.style.setProperty('--bo2',shiftHex(hex,35));
-  }
-  if(key==='text'){
-    // Verifica che il contrasto sia sufficiente
-    const bgHex=getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()||'#121212';
-    const cr=contrastRatio(hex,bgHex);
-    let finalHex=hex;
-    // Se il contrasto è sotto 4.5:1, schiarisci/scurisci finché non lo raggiunge
-    if(cr<4.5){
-      const lum=luminance(hex);
-      for(let step=5;step<=120;step+=5){
-        const candidate=shiftHex(hex, lum>0.5?-step:step);
-        if(contrastRatio(candidate,bgHex)>=4.5){ finalHex=candidate; break; }
-      }
-    }
-    R.style.setProperty('--tx', finalHex);
-    R.style.setProperty('--tx2',finalHex+'ee');
-    R.style.setProperty('--tx3',finalHex+'99');
-    R.style.setProperty('--tx4',finalHex+'66');
-    R.style.setProperty('--tx5',finalHex+'44');
-  }
-  syncUI();
-}
-
-function applyFont(val){sP('font',val);document.documentElement.style.setProperty('--ff',val);document.getElementById('sel-font').value=val;}
-function applyFontSize(val){
-  sP('fs',val);
-  document.documentElement.style.setProperty('--fs',val);
-  syncUI();
-}
-function applyFontSizeSlider(px){
-  const val=px+'px';
-  applyFontSize(val);
-  const lbl=document.getElementById('fs-val');
-  if(lbl) lbl.textContent=val;
-  const sl=document.getElementById('fs-slider');
-  if(sl) sl.value=px;
-}
-function applyFontWeight(val){sP('fw',val);document.documentElement.style.setProperty('--fw',val);document.documentElement.style.setProperty('--fwb',String(Math.min(900,parseInt(val)+200)));syncUI();}
-
-function syncUI(){
-  const cs=getComputedStyle(document.documentElement);
-  // font family
-  const fs=document.getElementById('sel-font');if(fs){const v=cs.getPropertyValue('--ff').trim();if(v)fs.value=v;}
-  // font size
-  const fsv=cs.getPropertyValue('--fs').trim()||'14px';
-  const fspx=parseInt(fsv)||14;
-  const sl=document.getElementById('fs-slider'); if(sl) sl.value=fspx;
-  const lbl=document.getElementById('fs-val'); if(lbl) lbl.textContent=fspx+'px';
-  // font weight
-  const fwv=cs.getPropertyValue('--fw').trim()||'400';
-  ['300','400','500','600'].forEach(w=>document.getElementById('fw-'+w)?.classList.remove('active'));
-  document.getElementById('fw-'+fwv)?.classList.add('active');
-  // theme
-  ['auto','light','dark'].forEach(x=>document.getElementById('tb-'+x)?.classList.toggle('active',thMode===x));
-  // aggiorna anteprima
-  updateColorPreview();
-}
-
-function resetStyle(){
-  localStorage.removeItem(PKEY);
-  ST.stylePrefs={};
-  const vars=['--ac','--ac2','--bg','--su','--su2','--bo','--bo2','--tx','--tx2','--tx3','--tx4','--tx5','--ff','--fs','--fw','--fwb'];
-  vars.forEach(v=>document.documentElement.style.removeProperty(v));
-  thMode='auto'; setTh('auto'); syncUI();
-  buildColorPicker();
-  Object.keys(_curSel).forEach(k=>_curSel[k]=null);
-  notify('Aspetto ripristinato ai valori default ✓');
-}
+// Auto-pull al ritorno in foreground
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible' && isLoggedIn()) pullFromCloud();
+});
 
 function loadPrefs(){
   const p=gP();
@@ -3147,50 +2650,33 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>
 (function(){
   load();
   loadPrefs();
-  updateAuthUI();
   const l=MN[sM]+' '+sY;
   ['lbl-d','lbl-m','lbl-b'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=l;});
   document.getElementById('lbl-r').textContent=l;
-  // Mostra stato salvataggio iniziale
   const s=document.getElementById('hdr-save');
   if(s&&ST.transactions.length>0) s.textContent='💾 dati caricati — ultimo salv. al riavvio';
-  // Popola filtri una-tantum
   const fa=document.getElementById('fa');
   getAccounts().forEach(a=>{const o=document.createElement('option');o.value=a.id;o.textContent=a.emoji+' '+a.label;fa.appendChild(o);});
   const fc=document.getElementById('fc');
   ST.budgets.forEach(b=>{const o=document.createElement('option');o.value=b.id;o.textContent=b.emoji+' '+b.name;fc.appendChild(o);});
   showFAB();
   rDash();
+  updSyncUI();
+  // Mostra il login: il modal è sempre visibile all'avvio finché non si accede
+  showLoginModal();
 })();
 </script>
-<!-- MODAL: IMPORT PASSWORD -->
-<div class="mbg" id="modal-pwd-import" onclick="if(event.target===this)closeModal('modal-pwd-import')">
-  <div class="modal">
-    <div class="mhdr">
-      <span class="mt">🔐 Inserisci password</span>
-      <button class="xb" onclick="closeModal('modal-pwd-import')"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>
-    <p style="font-size:13px;color:var(--tx3);margin-bottom:14px">Inserisci la password usata per cifrare questo file.</p>
-    <div class="fg">
-      <label class="fl">Password</label>
-      <input type="password" id="imp-enc-pwd" placeholder="Password cifratura…"
-        onkeydown="if(event.key==='Enter')confirmImpEncrypted()"/>
-    </div>
-    <p id="imp-enc-err" style="font-size:12px;color:var(--re);margin-bottom:10px;display:none">Password errata o file corrotto.</p>
-    <button class="bp" onclick="confirmImpEncrypted()">🔓 Decifra e importa</button>
-  </div>
-</div>
 
-<!-- MODAL: BUDGET ALERT -->
+  <!-- MODAL: BUDGET ALERT -->
 <div class="mbg" id="modal-budget-alert" onclick="if(event.target===this&&this.dataset.requiresAction!=='1')closeModal('modal-budget-alert')">
   <div class="modal">
-    <div id="ba-panel" style="border:1px solid var(--or);border-radius:12px;padding:14px;margin-bottom:16px;background:#431407">
-      <p id="ba-title" style="font-size:14px;font-weight:700;color:var(--or);margin-bottom:8px"></p>
-      <pre id="ba-body" style="font-size:13px;color:var(--tx2);white-space:pre-wrap;font-family:var(--ff);margin:0;line-height:1.6"></pre>
+    <div id="ba-panel" style="border-radius:12px;padding:16px;margin-bottom:16px">
+      <p id="ba-title" style="font-size:15px;font-weight:800;margin-bottom:10px"></p>
+      <pre id="ba-body" style="font-size:13px;white-space:pre-wrap;font-family:var(--ff);margin:0;line-height:1.7"></pre>
     </div>
-    <div id="ba-action-msg" style="display:none;background:rgba(239,68,68,.1);border:1px solid var(--re);border-radius:10px;padding:10px 14px;margin-bottom:14px">
-      <p style="font-size:13px;color:var(--re);font-weight:600">🔧 Azione richiesta</p>
-      <p style="font-size:12px;color:var(--tx3);margin-top:4px">Modifica i limiti delle categorie (tocca ✏ nella pagina Budget) fino a quando il totale rientra nel budget mensile. Il pannello si chiuderà automaticamente.</p>
+    <div id="ba-action-msg" style="display:none;background:#fef2f2;border:2px solid #dc2626;border-radius:10px;padding:12px 14px;margin-bottom:14px">
+      <p style="font-size:13px;color:#991b1b;font-weight:700">🔧 Azione richiesta</p>
+      <p style="font-size:12px;color:#7f1d1d;margin-top:4px">Modifica i limiti delle categorie (tocca ✏ nella pagina Budget) fino a quando il totale rientra nel budget mensile. Il pannello si chiuderà automaticamente.</p>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <button class="bg2" style="justify-content:center;padding:12px"
@@ -3259,17 +2745,88 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>
   }catch(e){}
 
   // Registra Service Worker esterno (obbligatorio per installazione PWA su Chrome)
+  // Registra SW solo su GitHub Pages (non in locale o in preview)
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('./sw.js', {scope:'./'})
-      .then(reg => {
-        console.log('SW registrato:', reg.scope);
-      })
-      .catch(err => {
-        // Fallback silenzioso (es. apertura da file://)
-        console.log('SW non registrato (probabile file://):', err.message);
-      });
+    const loc = window.location.hostname;
+    const isGitHubPages = loc.endsWith('github.io') || loc.endsWith('github.com');
+    const isLocal = loc==='' || loc==='localhost' || loc==='127.0.0.1' || loc.includes('claudeusercontent');
+    if(isGitHubPages && !isLocal){
+      navigator.serviceWorker.register('./sw.js', {scope:'./'})
+        .then(reg => console.log('SW registrato:', reg.scope))
+        .catch(()=>{});
+    }
   }
 })();
 </script>
+<!-- ═══════ MODAL LOGIN ═══════ -->
+<div id="modal-login" style="
+  position:fixed;inset:0;z-index:9999;
+  background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;overflow-y:auto">
+  <div style="width:100%;max-width:380px">
+    <!-- Logo -->
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="font-size:44px;margin-bottom:8px">💰</div>
+      <h1 style="font-family:var(--fd);font-size:26px;color:var(--ac);margin-bottom:4px">CasaFinance</h1>
+      <p style="font-size:13px;color:var(--tx4)">Gestione economica domestica</p>
+    </div>
+    <!-- Tabs registrazione / accesso -->
+    <div style="display:flex;border-radius:var(--rads);overflow:hidden;border:1px solid var(--bo);margin-bottom:20px">
+      <button id="tab-login" onclick="switchAuthTab('login')"
+        style="flex:1;padding:10px;border:none;cursor:pointer;font-size:13px;font-weight:600;
+               background:var(--ac);color:#0f172a;transition:all .2s">
+        Accedi
+      </button>
+      <button id="tab-register" onclick="switchAuthTab('register')"
+        style="flex:1;padding:10px;border:none;cursor:pointer;font-size:13px;font-weight:600;
+               background:transparent;color:var(--tx3);transition:all .2s">
+        Registrati
+      </button>
+    </div>
+    <!-- Form -->
+    <div style="background:var(--su);border:1px solid var(--bo);border-radius:var(--rads);padding:20px">
+      <div style="margin-bottom:12px">
+        <label class="fl">Nome utente</label>
+        <input type="text" id="login-user" placeholder="es. stefano"
+          autocomplete="username" inputmode="email"
+          style="text-transform:lowercase"
+          oninput="this.value=this.value.toLowerCase().replace(/\s/g,'')"
+          onkeydown="if(event.key==='Enter')document.getElementById('login-pwd').focus()"/>
+      </div>
+      <div style="margin-bottom:12px">
+        <label class="fl">Password</label>
+        <input type="password" id="login-pwd" placeholder="Min. 8 caratteri"
+          autocomplete="current-password"
+          onkeydown="if(event.key==='Enter')authSubmit()"/>
+      </div>
+      <div id="login-pwd2-wrap" style="display:none;margin-bottom:12px">
+        <label class="fl">Conferma password</label>
+        <input type="password" id="login-pwd2" placeholder="Ripeti la password"
+          autocomplete="new-password"
+          onkeydown="if(event.key==='Enter')authSubmit()"/>
+      </div>
+      <p id="auth-err" style="font-size:12px;color:#dc2626;margin-bottom:10px;display:none;
+        background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:8px 10px"></p>
+      <button onclick="authSubmit()"
+        style="width:100%;padding:12px;background:var(--ac);color:#0f172a;border:none;
+               border-radius:var(--rads);font-size:14px;font-weight:700;cursor:pointer">
+        <span id="auth-btn-label">Accedi</span>
+      </button>
+    </div>
+    <!-- Note -->
+    <p style="font-size:11px;color:var(--tx5);text-align:center;margin-top:16px;line-height:1.6">
+      ⚠ Se dimentichi la password i dati cifrati non saranno recuperabili.<br>
+      I dati sono cifrati con AES-256 prima di lasciare il dispositivo.
+    </p>
+    <!-- Skip (solo locale) -->
+    <button onclick="authSkip()"
+      style="width:100%;margin-top:10px;padding:10px;background:transparent;border:1px solid var(--bo);
+             border-radius:var(--rads);font-size:12px;color:var(--tx4);cursor:pointer">
+      Continua senza account (solo locale, niente sync)
+    </button>
+  </div>
+</div>
+
 </body>
 </html>
