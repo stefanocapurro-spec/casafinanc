@@ -38,8 +38,8 @@ jobs:
       # Anche una risposta vuota è sufficiente a segnalare attività.
       - name: Ping Supabase (keep database alive)
         env:
-          SUPA_URL: https://cwfcxzvlvhwulhmgpbgu.supabase.co
-          SUPA_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN3ZmN4enZsdmh3dWxobWdwYmd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NTcyMDksImV4cCI6MjA5MTMzMzIwOX0.BCQnhfU_230N-DZsdqEzLDGGXOLTQTVX1KlHJzARHXk
+          SUPA_URL: https://mtgnqopgpyzqqytgxhrh.supabase.co
+          SUPA_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10Z25xb3BncHl6cXF5dGd4aHJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3OTMzNzAsImV4cCI6MjA5NjM2OTM3MH0.nT5SzChw_qdSrYgZ7j4fRDM-pH8H26M9sxbDIgrrZyI
         run: |
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
             "$SUPA_URL/rest/v1/sync_data?limit=1" \
