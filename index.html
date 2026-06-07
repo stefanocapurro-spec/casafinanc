@@ -605,7 +605,33 @@ input:disabled{opacity:.5;background:transparent;border-color:transparent}
   </div>
 
   
-    <!-- GESTIONE DATI -->
+    <!-- ACCOUNT & SYNC -->
+  <div class="card cp stsec">
+    <div class="acc-hdr" onclick="toggleAcc('sync')">
+      <span style="font-size:13px;font-weight:700;color:var(--tx2)">☁️ Account &amp; Sync Cloud</span>
+      <span class="acc-arrow">▼</span>
+    </div>
+    <div class="acc-body" id="acc-sync">
+      <div id="sync-out">
+        <p style="font-size:12px;color:var(--tx4);margin-bottom:10px">Non sei autenticato — i dati restano solo su questo dispositivo.</p>
+        <button class="bp" style="width:100%" onclick="document.getElementById('modal-login').style.display='flex'">🔑 Accedi / Registrati</button>
+      </div>
+      <div id="sync-in" style="display:none">
+        <div style="background:var(--su2);border-radius:var(--rads);padding:10px 12px;margin-bottom:10px">
+          <p id="sync-user" style="font-size:13px;font-weight:700;color:var(--gr)">✓ Connesso</p>
+          <p style="font-size:10px;color:var(--tx4);margin-top:2px">Dati cifrati AES-256 · push automatico ad ogni salvataggio</p>
+          <p id="sync-ts" style="font-size:10px;color:var(--tx5);margin-top:3px"></p>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <button class="bdata" style="justify-content:center" onclick="cloudPush(false)">↑ Invia ora</button>
+          <button class="bdata" style="justify-content:center" onclick="cloudPull()">↓ Ricevi ora</button>
+        </div>
+        <button class="bg2" style="width:100%;justify-content:center;color:var(--re);border-color:rgba(239,68,68,.3)" onclick="authOut()">Esci dall'account</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GESTIONE DATI -->
   <div class="card cp stsec">
     <div class="acc-hdr" onclick="toggleAcc('dati')"><span style="font-size:13px;font-weight:700;color:var(--tx2)">🗄 Gestione Dati</span><span class="acc-arrow">▼</span></div>
     <div class="acc-body" id="acc-dati">
@@ -826,6 +852,7 @@ function save(){
     const s=document.getElementById('hdr-save');
     if(s) s.textContent='💾 '+ts.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' del '+ts.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'});
   }catch(e){}
+  _schedulePush();
 }
 
 function load(){
@@ -2295,15 +2322,6 @@ function resetAll(){
    Stubs per evitare errori se chiamati
 ══════════════════════════════════════════ */
 
-/* Cloud sync non attivo in questa versione */
-function pushToCloud(){}
-function pullFromCloud(){}
-function scheduleCloudPush(){}
-function showLoginModal(){}
-function updSyncUI(){}
-function authSkip(){}
-function authSubmit(){}
-function switchAuthTab(){}
 
 function loadPrefs(){
   const p=gP();
@@ -2339,6 +2357,12 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>
   ST.budgets.forEach(b=>{const o=document.createElement('option');o.value=b.id;o.textContent=b.emoji+' '+b.name;fc.appendChild(o);});
   showFAB();
   rDash();
+  _syncUI();
+  // Pre-compila username se ricordato
+  const _su=localStorage.getItem(AU_KEY);
+  if(_su){ const el=document.getElementById('au-user'); if(el) el.value=_su; }
+  // Mostra login all'avvio
+  document.getElementById('modal-login').style.display='flex';
 })();
 </script>
 
@@ -2433,5 +2457,50 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>
   }
 })();
 </script>
+<!-- ═══════ MODAL LOGIN ═══════ -->
+<div id="modal-login" style="position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;overflow-y:auto">
+  <div style="width:100%;max-width:360px">
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="font-size:48px;margin-bottom:8px">💰</div>
+      <h1 style="font-family:var(--fd);font-size:24px;color:var(--ac);margin-bottom:4px">CasaFinance</h1>
+      <p style="font-size:12px;color:var(--tx4)">Gestione economica domestica</p>
+    </div>
+    <!-- Tab -->
+    <div style="display:flex;border-radius:var(--rads);overflow:hidden;border:1px solid var(--bo);margin-bottom:16px">
+      <button id="tab-accedi"     onclick="authTab('accedi')"    style="flex:1;padding:10px;border:none;cursor:pointer;font-size:13px;font-weight:600;background:var(--ac);color:#0f172a">Accedi</button>
+      <button id="tab-registrati" onclick="authTab('registrati')" style="flex:1;padding:10px;border:none;cursor:pointer;font-size:13px;font-weight:600;background:transparent;color:var(--tx3)">Registrati</button>
+    </div>
+    <!-- Campi -->
+    <div style="background:var(--su);border:1px solid var(--bo);border-radius:var(--rads);padding:18px">
+      <div style="margin-bottom:12px">
+        <label class="fl">Nome utente</label>
+        <input type="text" id="au-user" placeholder="es. stefano" autocomplete="username"
+          oninput="this.value=this.value.toLowerCase().replace(/\s/g,'')"
+          onkeydown="if(event.key==='Enter')document.getElementById('au-pwd').focus()"/>
+      </div>
+      <div style="margin-bottom:12px">
+        <label class="fl">Password (min. 8 caratteri)</label>
+        <input type="password" id="au-pwd" autocomplete="current-password"
+          onkeydown="if(event.key==='Enter')authSubmit()"/>
+      </div>
+      <div id="au-pwd2-wrap" style="display:none;margin-bottom:12px">
+        <label class="fl">Conferma password</label>
+        <input type="password" id="au-pwd2" autocomplete="new-password"
+          onkeydown="if(event.key==='Enter')authSubmit()"/>
+      </div>
+      <div id="au-err" style="display:none;font-size:12px;padding:8px 10px;border-radius:8px;margin-bottom:10px;background:#fef2f2;border:1px solid #fca5a5;color:#991b1b"></div>
+      <button onclick="authSubmit()" style="width:100%;padding:12px;background:var(--ac);color:#0f172a;border:none;border-radius:var(--rads);font-size:14px;font-weight:700;cursor:pointer">
+        <span id="au-btn">Accedi</span>
+      </button>
+    </div>
+    <p style="font-size:11px;color:var(--tx5);text-align:center;margin-top:12px;line-height:1.6">
+      ⚠ Se dimentichi la password i dati cifrati non sono recuperabili.<br>I dati escono dal dispositivo solo in forma cifrata AES-256.
+    </p>
+    <button onclick="authSkip()" style="width:100%;margin-top:8px;padding:10px;background:transparent;border:1px solid var(--bo);border-radius:var(--rads);font-size:12px;color:var(--tx4);cursor:pointer">
+      Continua senza account (solo locale)
+    </button>
+  </div>
+</div>
+
 </body>
 </html>
