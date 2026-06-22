@@ -613,7 +613,7 @@ input:disabled{opacity:.5;background:transparent;border-color:transparent}
     </div>
     <div class="acc-body" id="acc-sync">
       <div id="sync-out">
-        <p style="font-size:12px;color:var(--tx4);margin-bottom:10px">Non sei autenticato — i dati restano solo su questo dispositivo.</p>
+        <p style="font-size:12px;color:var(--tx4);margin-bottom:10px">Non autenticato — dati solo su questo dispositivo.</p>
         <button class="bp" style="width:100%" onclick="document.getElementById('modal-login').style.display='flex'">🔑 Accedi / Registrati</button>
       </div>
       <div id="sync-in" style="display:none">
@@ -2322,6 +2322,251 @@ function resetAll(){
    Stubs per evitare errori se chiamati
 ══════════════════════════════════════════ */
 
+/* Cloud sync non attivo in questa versione */
+function pushToCloud(){}
+function pullFromCloud(){}
+function scheduleCloudPush(){}
+function showLoginModal(){}
+function updSyncUI(){}
+function switchAuthTab(){}
+
+/* ═══════════════════════════════════════════════════
+   AUTH + AES-256-GCM + SUPABASE SYNC
+   Chiave = PBKDF2(password, salt=SHA256(username))
+   Stessa coppia = stessa chiave su qualsiasi device.
+   Nessuna chiave salvata. Reset pwd = perdita dati.
+═══════════════════════════════════════════════════ */
+
+const DB_URL = 'https://mtgnqopgpyzqqytgxhrh.supabase.co';
+const DB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10Z25xb3BncHl6cXF5dGd4aHJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3OTMzNzAsImV4cCI6MjA5NjM2OTM3MH0.nT5SzChw_qdSrYgZ7j4fRDM-pH8H26M9sxbDIgrrZyI';
+const DB_HDR = {
+  'Content-Type':  'application/json',
+  'apikey':         DB_KEY,
+  'Authorization': 'Bearer ' + DB_KEY
+};
+const AU_LS = 'cf_user'; // localStorage: solo username, mai password
+
+let _user = null;     // username in memoria (sessione)
+let _ckey = null;     // CryptoKey AES-256, non serializzabile
+let _ptmr = null;     // timer debounce push
+
+const _te = new TextEncoder();
+const _td = new TextDecoder();
+function _ab2b(buf){ return btoa(String.fromCharCode(...new Uint8Array(buf))); }
+function _b2ab(b64){ return Uint8Array.from(atob(b64), c => c.charCodeAt(0)).buffer; }
+
+/* ── Derivazione chiave PBKDF2 ── */
+async function _deriveKey(user, pwd){
+  const salt = await crypto.subtle.digest('SHA-256', _te.encode(user.trim().toLowerCase()));
+  const raw  = await crypto.subtle.importKey('raw', _te.encode(pwd), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name:'PBKDF2', salt, iterations:310000, hash:'SHA-256' },
+    raw,
+    { name:'AES-GCM', length:256 },
+    false,
+    ['encrypt','decrypt']
+  );
+}
+
+/* ── Cifratura ── */
+async function _enc(json){
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, _ckey, _te.encode(json));
+  const out = new Uint8Array(12 + ct.byteLength);
+  out.set(iv);
+  out.set(new Uint8Array(ct), 12);
+  return _ab2b(out.buffer);
+}
+
+/* ── Decifratura ── */
+async function _dec(b64, key){
+  try{
+    const buf = _b2ab(b64);
+    const iv  = new Uint8Array(buf, 0, 12);
+    const ct  = new Uint8Array(buf, 12);
+    const pt  = await crypto.subtle.decrypt({ name:'AES-GCM', iv }, key || _ckey, ct);
+    return _td.decode(pt);
+  } catch(e){ return null; }
+}
+
+/* ── Supabase: leggi record ── */
+async function _dbGet(user){
+  try{
+    const r = await fetch(
+      DB_URL + '/rest/v1/sync_data?device_id=eq.' + encodeURIComponent(user) + '&limit=1',
+      { headers: DB_HDR }
+    );
+    if(!r.ok) return null;
+    const rows = await r.json();
+    return (rows && rows.length) ? rows[0] : null;
+  } catch(e){ return null; }
+}
+
+/* ── UI: tab accedi/registrati ── */
+let _authMode = 'accedi';
+function authTab(mode){
+  _authMode = mode;
+  const isReg = (mode === 'registrati');
+  const ta = document.getElementById('tab-accedi');
+  const tr = document.getElementById('tab-registrati');
+  const pw = document.getElementById('au-pwd2-wrap');
+  const btn = document.getElementById('au-btn');
+  if(ta){  ta.style.background = isReg ? 'transparent' : 'var(--ac)';
+           ta.style.color      = isReg ? 'var(--tx3)'  : '#0f172a'; }
+  if(tr){  tr.style.background = isReg ? 'var(--ac)'   : 'transparent';
+           tr.style.color      = isReg ? '#0f172a'     : 'var(--tx3)'; }
+  if(pw)  pw.style.display = isReg ? 'block' : 'none';
+  if(btn) btn.textContent  = isReg ? 'Crea account' : 'Accedi';
+  const err = document.getElementById('au-err');
+  if(err) err.style.display = 'none';
+}
+
+function _auErr(msg){
+  const e = document.getElementById('au-err');
+  if(e){ e.textContent = msg; e.style.display = 'block'; }
+}
+
+/* ── Submit form login/register ── */
+async function authSubmit(){
+  const user = (document.getElementById('au-user').value || '').trim().toLowerCase();
+  const pwd  = (document.getElementById('au-pwd').value  || '');
+  const err  = document.getElementById('au-err');
+  if(err) err.style.display = 'none';
+
+  if(!user){ _auErr('Inserisci il nome utente.'); return; }
+  if(pwd.length < 8){ _auErr('La password deve essere di almeno 8 caratteri.'); return; }
+  if(_authMode === 'registrati'){
+    const pwd2 = (document.getElementById('au-pwd2').value || '');
+    if(pwd !== pwd2){ _auErr('Le password non coincidono.'); return; }
+  }
+
+  const btn = document.getElementById('au-btn');
+  const orig = btn ? btn.textContent : '';
+  if(btn) btn.textContent = '⏳…';
+
+  try{
+    const key = await _deriveKey(user, pwd);
+    const row = await _dbGet(user);
+
+    if(row){
+      // Utente esistente: verifica password tentando la decifratura
+      const json = await _dec(row.payload, key);
+      if(!json){ _auErr('Password errata — impossibile accedere ai dati.'); return; }
+      // Password ok: carica dati se il cloud è più aggiornato
+      _user = user; _ckey = key;
+      localStorage.setItem(AU_LS, user);
+      const remTs = new Date(row.updated_at);
+      const locTs = ST._push ? new Date(ST._push) : new Date(0);
+      if(remTs > locTs){
+        const data = JSON.parse(json);
+        ST = Object.assign({}, ST, data);
+        if(!ST.ccSettings) ST.ccSettings = { cycleStartDay:2, paymentDays:45, paymentAccount:'contoCondiviso', plafond:0 };
+        if(!ST.monthlyBudget) ST.monthlyBudget = 2100;
+        if(!ST.accounts || !ST.accounts.length) ST.accounts = JSON.parse(JSON.stringify(ACCTS));
+        if(!ST.incomeSources || !ST.incomeSources.length) ST.incomeSources = [...DEFAULT_INC_SOURCES];
+        save();
+        if(ST.stylePrefs) try{ localStorage.setItem(PKEY, JSON.stringify(ST.stylePrefs)); loadPrefs(); }catch(e2){}
+        rDash();
+      }
+      _closeLogin();
+      notify('🔐 Bentornato, ' + user + '!');
+    } else {
+      // Nessun record: primo accesso → salva e fa push
+      _user = user; _ckey = key;
+      localStorage.setItem(AU_LS, user);
+      await cloudPush(true);
+      _closeLogin();
+      notify('🔐 Account creato — benvenuto, ' + user + '!');
+    }
+  } catch(e){
+    _auErr('Errore di connessione. Verifica la rete e riprova.');
+    console.error('auth error', e);
+  } finally{
+    if(btn) btn.textContent = orig;
+  }
+}
+
+function _closeLogin(){
+  const m = document.getElementById('modal-login');
+  if(m) m.style.display = 'none';
+  _syncUI();
+}
+
+function authSkip(){
+  const m = document.getElementById('modal-login');
+  if(m) m.style.display = 'none';
+  notify('Modalità locale — nessun sync cloud', 'warn');
+}
+
+function authOut(){
+  if(!confirm("Esci dall'account? I dati locali restano sul dispositivo.")) return;
+  _user = null; _ckey = null;
+  _syncUI();
+  notify('Sessione terminata', 'warn');
+}
+
+/* ── Aggiorna pannello sync nelle impostazioni ── */
+function _syncUI(){
+  const ok = !!_ckey;
+  const elOut = document.getElementById('sync-out');
+  const elIn  = document.getElementById('sync-in');
+  if(elOut) elOut.style.display = ok ? 'none'  : 'block';
+  if(elIn)  elIn.style.display  = ok ? 'block' : 'none';
+  if(ok && _user){
+    const ul = document.getElementById('sync-user');
+    if(ul) ul.textContent = '✓ Connesso come ' + _user;
+  }
+}
+
+/* ── Push / Pull ── */
+async function cloudPush(silent){
+  if(!_ckey){ if(!silent) notify('Accedi prima di sincronizzare', 'warn'); return; }
+  try{
+    ST.stylePrefs = gP();
+    const payload = await _enc(JSON.stringify({ ...ST, _push: new Date().toISOString() }));
+    const r = await fetch(DB_URL + '/rest/v1/sync_data', {
+      method:  'POST',
+      headers: Object.assign({ 'Prefer':'resolution=merge-duplicates,return=minimal' }, DB_HDR),
+      body:    JSON.stringify({ device_id: _user, payload, updated_at: new Date().toISOString() })
+    });
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const ts = new Date().toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' });
+    const el = document.getElementById('sync-ts');
+    if(el) el.textContent = 'Ultimo sync: ' + ts;
+    if(!silent) notify('☁️ Dati inviati ✓ (' + ts + ')');
+  } catch(e){
+    if(!silent) notify('Errore push: ' + e.message, 'err');
+    console.error('push', e);
+  }
+}
+
+async function cloudPull(){
+  if(!_ckey){ notify('Accedi prima di sincronizzare', 'warn'); return; }
+  try{
+    const row = await _dbGet(_user);
+    if(!row){ notify('Nessun dato cloud per questo account', 'warn'); return; }
+    const json = await _dec(row.payload);
+    if(!json){ notify('Impossibile decifrare — password errata?', 'err'); return; }
+    const remTs = new Date(row.updated_at);
+    const locTs = ST._push ? new Date(ST._push) : new Date(0);
+    if(remTs <= locTs){ notify('Dati già aggiornati ✓'); return; }
+    ST = Object.assign({}, ST, JSON.parse(json));
+    save(); rDash(); if(curV !== 'dashboard') go(curV);
+    notify('☁️ Dati ricevuti ✓ (' + remTs.toLocaleTimeString('it-IT', {hour:'2-digit',minute:'2-digit'}) + ')');
+  } catch(e){ notify('Errore pull: ' + e.message, 'err'); }
+}
+
+function _schedulePush(){
+  if(!_ckey) return;
+  clearTimeout(_ptmr);
+  _ptmr = setTimeout(() => cloudPush(true), 3000);
+}
+
+// Auto-pull quando la pagina torna in foreground
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible' && _ckey) cloudPull();
+});
+
 
 function loadPrefs(){
   const p=gP();
@@ -2343,7 +2588,6 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>
 (function(){
   load();
   loadPrefs();
-  updateAuthUI();
   const l=MN[sM]+' '+sY;
   ['lbl-d','lbl-m','lbl-b'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=l;});
   document.getElementById('lbl-r').textContent=l;
@@ -2358,11 +2602,12 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>
   showFAB();
   rDash();
   _syncUI();
-  // Pre-compila username se ricordato
-  const _su=localStorage.getItem(AU_KEY);
-  if(_su){ const el=document.getElementById('au-user'); if(el) el.value=_su; }
-  // Mostra login all'avvio
-  document.getElementById('modal-login').style.display='flex';
+  // Pre-compila username se già noto
+  const _storedU = localStorage.getItem(AU_LS);
+  if(_storedU){ const _uel=document.getElementById('au-user'); if(_uel) _uel.value=_storedU; }
+  // Mostra il login all'avvio
+  const _ml = document.getElementById('modal-login');
+  if(_ml) _ml.style.display = 'flex';
 })();
 </script>
 
@@ -2458,19 +2703,17 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>
 })();
 </script>
 <!-- ═══════ MODAL LOGIN ═══════ -->
-<div id="modal-login" style="position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;overflow-y:auto">
+<div id="modal-login" style="position:fixed;inset:0;z-index:9999;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;overflow-y:auto">
   <div style="width:100%;max-width:360px">
     <div style="text-align:center;margin-bottom:24px">
       <div style="font-size:48px;margin-bottom:8px">💰</div>
       <h1 style="font-family:var(--fd);font-size:24px;color:var(--ac);margin-bottom:4px">CasaFinance</h1>
       <p style="font-size:12px;color:var(--tx4)">Gestione economica domestica</p>
     </div>
-    <!-- Tab -->
     <div style="display:flex;border-radius:var(--rads);overflow:hidden;border:1px solid var(--bo);margin-bottom:16px">
       <button id="tab-accedi"     onclick="authTab('accedi')"    style="flex:1;padding:10px;border:none;cursor:pointer;font-size:13px;font-weight:600;background:var(--ac);color:#0f172a">Accedi</button>
       <button id="tab-registrati" onclick="authTab('registrati')" style="flex:1;padding:10px;border:none;cursor:pointer;font-size:13px;font-weight:600;background:transparent;color:var(--tx3)">Registrati</button>
     </div>
-    <!-- Campi -->
     <div style="background:var(--su);border:1px solid var(--bo);border-radius:var(--rads);padding:18px">
       <div style="margin-bottom:12px">
         <label class="fl">Nome utente</label>
@@ -2494,13 +2737,12 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>
       </button>
     </div>
     <p style="font-size:11px;color:var(--tx5);text-align:center;margin-top:12px;line-height:1.6">
-      ⚠ Se dimentichi la password i dati cifrati non sono recuperabili.<br>I dati escono dal dispositivo solo in forma cifrata AES-256.
+      ⚠ Se dimentichi la password i dati cifrati non sono recuperabili.
     </p>
     <button onclick="authSkip()" style="width:100%;margin-top:8px;padding:10px;background:transparent;border:1px solid var(--bo);border-radius:var(--rads);font-size:12px;color:var(--tx4);cursor:pointer">
       Continua senza account (solo locale)
     </button>
   </div>
 </div>
-
 </body>
 </html>
